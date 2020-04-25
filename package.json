@@ -12,7 +12,7 @@
     "tuya",
     "smartlife"
   ],
-  "author": "Bas Delfos <b.delfos@gmail.com>",
+  "author": "Milo Cesar <milocesar1@gmail.com>",
   "license": "MIT",
   "engines": {
     "node": ">=0.12.0",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/basdelfos/homebridge-tuya-web.git"
+    "url": "https://github.com/milo526/homebridge-tuya-web"
   },
   "dependencies": {
     "request": "^2.88.0"

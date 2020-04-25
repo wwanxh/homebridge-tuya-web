@@ -1,5 +1,3 @@
-!! THIS REPOSITORY IS NOT ACTIVELY MAINTAINED ANYMORE, PLEASE FEEL FREE TO CREATE FORK !!
-
 # homebridge-tuya-web
 
 Homebridge plugin for Tuya devices using a cloud Tuya Web Api.
@@ -19,7 +17,7 @@ This Homebridge Plugin implements the following features:
 ## Installation
 
 ```
-npm i homebridge-tuya-web -g
+npm i @milo526/homebridge-tuya-web -g
 ```
 
 ## Basic config.json
@@ -79,12 +77,12 @@ There is currently support for the following device types within this Homebridge
 
 - **Switch/Outlet** - The platform supports switch and outlets/sockets.
 - **Light/Dimmer** - The platform supports most kinds of Tuya light. Partly implemented, now only supports controlling on/off and brightness. This can be used with a dimmer.
+- **Fan** - The platform support most kinds of Tuya Fans. Partly implemented, on/off and speed control work, oscillation is not implemented due to lack of support in the Tuya Homeassistant API. 
 
 The used Web API also supports these devices, but are not implemented yet in the plugin.
 
 - **Climate** - Not yet supported.
 - **Cover** - Not yet supported.
-- **Fan** - Not yet supported.
 - **Scene** - Not supported, don't see the use of this as scenes are configured in HomeKit. Will probably never implement this.
 
 ## TODO

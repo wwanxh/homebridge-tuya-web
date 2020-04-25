@@ -1,6 +1,7 @@
 const SwitchAccessory = require('./lib/switch_accessory');
 const OutletAccessory = require('./lib/outlet_accessory');
 const DimmerAccessory = require('./lib/dimmer_accessory');
+const FanAccessory = require('./lib/fan_accessory');
 const LightAccessory = require('./lib/light_accessory');
 const TuyaWebApi = require('./lib/tuyawebapi');
 
@@ -45,6 +46,7 @@ class TuyaWebPlatform {
     );
 
     this.accessories = new Map();
+    this.failedToInitAccessories = [];
 
     if (api) {
       // Save the API object as plugin needs to register new accessory via this object
@@ -66,7 +68,7 @@ class TuyaWebPlatform {
             for (const device of devices) {
               this.addAccessory(device);
             }
-            // Get device strate of all devices - once
+            // Get device state of all devices - once
             this.refreshDeviceStates();
           }).catch((error) => {
             this.log.error(error);
@@ -93,9 +95,8 @@ class TuyaWebPlatform {
         const homebridgeAccessory = this.accessories.get(uuid);
         if (homebridgeAccessory) {
           homebridgeAccessory.controller.updateAccessory(device);
-        }
-        else {
-          this.log.error('Could not find accessory in dictionary');
+        } else if(!this.failedToInitAccessories.includes(uuid)){
+          this.log.error('Could not find accessory in dictionary (%s)', uuid);
         }
       }
     }).catch((error) => {
@@ -105,7 +106,6 @@ class TuyaWebPlatform {
 
   addAccessory(device) {
     var deviceType = device.dev_type || 'switch';
-    this.log.info('Adding: %s (%s / %s)', device.name || 'unnamed', deviceType, device.id);
 
     // Get UUID
     const uuid = this.api.hap.uuid.generate(device.id);
@@ -128,6 +128,10 @@ class TuyaWebPlatform {
         deviceAccessory = new LightAccessory(this, homebridgeAccessory, device);
         this.accessories.set(uuid, deviceAccessory.homebridgeAccessory);
         break;
+      case 'fan':
+        deviceAccessory = new FanAccessory(this, homebridgeAccessory, device);
+        this.accessories.set(uuid, deviceAccessory.homebridgeAccessory);
+        break;
       case 'dimmer':
         deviceAccessory = new DimmerAccessory(this, homebridgeAccessory, device);
         this.accessories.set(uuid, deviceAccessory.homebridgeAccessory);
@@ -139,6 +143,7 @@ class TuyaWebPlatform {
         break;
       default:
         this.log.warn('Could not init class for device type [%s]', deviceType);
+        this.failedToInitAccessories.push(uuid);
         break;
     }
   }
@@ -166,11 +171,6 @@ class TuyaWebPlatform {
     });
 
     this.accessories.set(accessory.UUID, accessory);
-  }
-
-  updateAccessoryReachability(accessory, state) {
-    this.log("Update Reachability [%s]", accessory.displayName, state);
-    accessory.updateReachability(state);
   }
 
   // Sample function to show how developer can remove accessory dynamically from outside event
