@@ -23,7 +23,7 @@
     "url": "https://github.com/milo526/homebridge-tuya-web"
   },
   "dependencies": {
-    "request": "^2.88.0"
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
