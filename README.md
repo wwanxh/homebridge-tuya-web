@@ -20,9 +20,9 @@ This Homebridge Plugin implements the following features:
 npm i @milo526/homebridge-tuya-web -g
 ```
 
-## Basic config.json
+## Configuration
 
-```javascript
+```json
 {
   "platform": "TuyaWebPlatform",
   "name": "TuyaWebPlatform",
@@ -42,16 +42,16 @@ The `options` has these properties:
 - `username`: Required. The username for the account that is registered in the Android/iOS App.
 - `password`: Required. The password for the account that is registered in the Android/iOS App.
 - `countryCode`: Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for USA or 86 for China.
-- `plaform`: The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
-- `pollingInterval`: Optional. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are only controlled through Homebridge, you can set this to a low frequency (high interval nummer, e.g. 180 = 3 minutes). Defaults to 10.
+- `platform`: The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
+- `pollingInterval`: Optional. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes). Defaults to 10.
 
-## Overrule / default values
+## Overruling Device Types
 
-As of version 0.1.6 it is possible to override or set values to default. As of now only overruling device type is posible. See configuration below.
+As of version 0.1.6 it is possible to override values from the default. As of now, only overruling device types is possible. See example configuration below.
 
-```javascript
+```json
 {
-  "platform": "TuyaWebPlatform"
+  "platform": "TuyaWebPlatform",
   "name": "TuyaWebPlatform",
   "options":
     {
@@ -69,29 +69,27 @@ As of version 0.1.6 it is possible to override or set values to default. As of n
 The `defaults` has these properties:
 
 - `id`: Required. The id for the device that is registered in the Android/iOS App.
-- `device_type`: Optional. The device_type to be overruled. For now only device type `dimmer` is supported. This can be usefull for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation. 
+- `device_type`: Optional. The `device_type` to be overruled. For now only device type `dimmer` is supported. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation. 
 
-## Supported device types
+## Supported Device Types
 
 There is currently support for the following device types within this Homebridge plugin:
 
 - **Switch/Outlet** - The platform supports switch and outlets/sockets.
-- **Light/Dimmer** - The platform supports most kinds of Tuya light. Partly implemented, now only supports controlling on/off and brightness. This can be used with a dimmer.
-- **Fan** - The platform support most kinds of Tuya Fans. Partly implemented, on/off and speed control work, oscillation is not implemented due to lack of support in the Tuya Homeassistant API. 
+- **Light/Dimmer** - The platform supports most types of Tuya lights. This is partly implemented and only currently supports controlling the on/off state and the brightness. This can be used with a dimmer.
+- **Fan** - The platform supports most kinds of Tuya fans. This is partly implemented and only currently supports controlling the on/off state and speed control. Oscillation is not implemented due to lack of support in the Tuya API. 
 
-The used Web API also supports these devices, but are not implemented yet in the plugin.
+The Web API also supports these devices, but are not implemented yet in the plugin.
 
+- **Scene** - Not yet supported, see discussions in #1 and #8.
 - **Climate** - Not yet supported.
 - **Cover** - Not yet supported.
-- **Scene** - Not supported, don't see the use of this as scenes are configured in HomeKit. Will probably never implement this.
 
 ## TODO
 
 These features are on my wishlist and need to be implemented:
 
 - Implement devices that are not supported yet.
-- Add option to enable/disable state caching.
-- Add option to change polling frequency to user defined value (default is now 10 seconds).
 
 ## Unit tests
 
@@ -102,6 +100,8 @@ The source code also has some unit tests to test API calls. Run the following co
 ```
 
 ## Version history
+
+#### For newer versions please consult the [releases](https://github.com/milo526/homebridge-tuya-web/releases).
 
 ##### Version 0.1.7 - 2019-08-18
 
