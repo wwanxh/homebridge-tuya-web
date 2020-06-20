@@ -5,6 +5,8 @@ const FanAccessory = require('./lib/fan_accessory');
 const LightAccessory = require('./lib/light_accessory');
 const TuyaWebApi = require('./lib/tuyawebapi');
 
+const util = require('util')
+
 var Accessory, Service, Characteristic, UUIDGen;
 
 module.exports = function (homebridge) {
@@ -163,11 +165,6 @@ class TuyaWebPlatform {
         // otherwise set to false and update the reachability later by invoking
         // accessory.updateReachability()
         accessory.reachable = true;
-
-        accessory.on('identify', function (paired, callback) {
-            this.log.debug('[IDENTIFY][%s]', accessory.displayName);
-            callback();
-        });
 
         this.accessories.set(accessory.UUID, accessory);
     }
