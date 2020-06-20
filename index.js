@@ -94,7 +94,7 @@ class TuyaWebPlatform {
             for (const device of devices) {
                 const uuid = this.api.hap.uuid.generate(device.id);
                 const homebridgeAccessory = this.accessories.get(uuid);
-                if (homebridgeAccessory) {
+                if (homebridgeAccessory && homebridgeAccessory.controller) {
                     homebridgeAccessory.controller.updateAccessory(device);
                 } else if (!this.failedToInitAccessories.includes(uuid)) {
                     this.log.error('Could not find accessory in dictionary (%s)', uuid);
