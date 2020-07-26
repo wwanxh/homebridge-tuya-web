@@ -77,7 +77,9 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
                 this.log?.info('Enable cloud polling with interval %ss', this.pollingInterval);
                 // Set interval for refreshing device states
                 setInterval(() => {
-                  this.refreshDeviceStates();
+                  this.refreshDeviceStates().catch((error) => {
+                    this.log.error(error.message);
+                  });
                 }, this.pollingInterval * 1000);
         }
       });
