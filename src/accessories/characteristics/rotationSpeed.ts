@@ -58,7 +58,11 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
 
     public setRemoteValue(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void {
       // Set device state in Tuya Web API
-      const value = Number(homekitValue);
+      let value = Number(homekitValue);
+      // Set value to 1 if value is too small
+      value = value < 1 ? 1 : value;
+      // Set value to minSpeedLevel if value is too large
+      value = value > this.maxSpeedLevel ? this.maxSpeedLevel : value;
 
       this.accessory.platform.tuyaWebApi.setDeviceState(this.accessory.deviceId, 'windSpeedSet', {value}).then(() => {
         this.debug('[SET] %s %s', homekitValue, value);
