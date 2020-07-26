@@ -25,6 +25,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
         format: Formats.INT,
         minValue: 0,
         maxValue: this.maxSpeedLevel,
+        minStep: 1,
       });
     }
 
