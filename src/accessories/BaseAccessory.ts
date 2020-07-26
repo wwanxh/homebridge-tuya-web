@@ -1,6 +1,6 @@
 import {HomebridgeAccessory, TuyaWebPlatform} from '../platform';
 import {Categories, Logger, WithUUID} from 'homebridge';
-import {Characteristic, CharacteristicGetCallback, CharacteristicValue, Nullable, Service} from 'hap-nodejs';
+import {Characteristic, CharacteristicGetCallback, CharacteristicValue, Nullable, Service} from 'homebridge';
 import {TuyaDevice} from '../TuyaWebApi';
 import {PLUGIN_NAME} from '../settings';
 import {inspect} from 'util';
@@ -65,19 +65,19 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
 
       switch (categoryType) {
         case Categories.LIGHTBULB:
-          this.serviceType = Service.Lightbulb;
+          this.serviceType = platform.Service.Lightbulb;
           break;
         case Categories.SWITCH:
-          this.serviceType = Service.Switch;
+          this.serviceType = platform.Service.Switch;
           break;
         case Categories.OUTLET:
-          this.serviceType = Service.Outlet;
+          this.serviceType = platform.Service.Outlet;
           break;
         case Categories.FAN:
-          this.serviceType = Service.Fanv2;
+          this.serviceType = platform.Service.Fanv2;
           break;
         default:
-          this.serviceType = Service.AccessoryInformation;
+          this.serviceType = platform.Service.AccessoryInformation;
       }
 
       // Retrieve existing of create new Bridged Accessory
@@ -106,7 +106,7 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
       // Create service
       this.service = this.homebridgeAccessory.getService(this.serviceType);
       if (this.service) {
-        this.service.setCharacteristic(Characteristic.Name, this.deviceConfig.name);
+        this.service.setCharacteristic(platform.Characteristic.Name, this.deviceConfig.name);
       } else {
         this.log.debug('Creating New Service %s', this.deviceConfig.id);
         this.service = this.homebridgeAccessory.addService(this.serviceType, this.deviceConfig.name);
@@ -151,13 +151,13 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
       this.homebridgeAccessory.displayName = device.name;
       this.homebridgeAccessory._associatedHAPAccessory.displayName = device.name;
       const accessoryInformationService = (
-        this.homebridgeAccessory.getService(Service.AccessoryInformation) ||
-            this.homebridgeAccessory.addService(Service.AccessoryInformation));
-      setCharacteristic(Characteristic.Name, device.name);
+        this.homebridgeAccessory.getService(this.platform.Service.AccessoryInformation) ||
+            this.homebridgeAccessory.addService(this.platform.Service.AccessoryInformation));
+      setCharacteristic(this.platform.Characteristic.Name, device.name);
 
-      setCharacteristic(Characteristic.SerialNumber, this.deviceConfig.id);
-      setCharacteristic(Characteristic.Manufacturer, PLUGIN_NAME);
-      setCharacteristic(Characteristic.Model, this.categoryType);
+      setCharacteristic(this.platform.Characteristic.SerialNumber, this.deviceConfig.id);
+      setCharacteristic(this.platform.Characteristic.Manufacturer, PLUGIN_NAME);
+      setCharacteristic(this.platform.Characteristic.Model, this.categoryType);
 
       // Update device specific state
       this.updateState(device.data);

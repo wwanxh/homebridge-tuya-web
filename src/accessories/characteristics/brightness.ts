@@ -1,9 +1,10 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'hap-nodejs';
+import {CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 import {COLOR_MODES, ColorModes} from './index';
 import {XOR} from 'ts-xor';
 import {inspect} from 'util';
 import {TuyaWebCharacteristic} from './base';
+import {BaseAccessory} from '../BaseAccessory';
 
 export type BrightnessCharacteristicData =
     XOR<{ brightness: string }, { color: { brightness?: string }, color_mode: ColorModes }>
@@ -11,7 +12,10 @@ type DeviceWithBrightnessCharacteristic = TuyaDevice<TuyaDeviceState & Brightnes
 
 export class BrightnessCharacteristic extends TuyaWebCharacteristic {
     public static Title = 'Characteristic.Brightness'
-    public static HomekitCharacteristic = Characteristic.Brightness;
+
+    public static HomekitCharacteristic(accessory: BaseAccessory) {
+      return accessory.platform.Characteristic.Brightness;
+    }
 
     public static DEFAULT_VALUE = 100;
 

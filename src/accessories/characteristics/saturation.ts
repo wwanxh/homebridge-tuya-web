@@ -1,15 +1,19 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'hap-nodejs';
+import {CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 import {COLOR_MODES, ColorModes} from './index';
 import {TuyaWebCharacteristic} from './base';
 import {ColorAccessory} from '../ColorAccessory';
+import {BaseAccessory} from '../BaseAccessory';
 
 export type SaturationCharacteristicData = { color: { saturation?: string }, color_mode: ColorModes }
 type DeviceWithSaturationCharacteristic = TuyaDevice<TuyaDeviceState & SaturationCharacteristicData>
 
 export class SaturationCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
     public static Title = 'Characteristic.Saturation'
-    public static HomekitCharacteristic = Characteristic.Saturation;
+
+    public static HomekitCharacteristic(accessory: BaseAccessory) {
+      return accessory.platform.Characteristic.Saturation;
+    }
 
     public static DEFAULT_VALUE = 0;
 

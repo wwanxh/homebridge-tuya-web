@@ -1,15 +1,19 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'hap-nodejs';
+import {CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 import {COLOR_MODES, ColorModes} from './index';
 import {TuyaWebCharacteristic} from './base';
 import {ColorAccessory} from '../ColorAccessory';
+import {BaseAccessory} from '../BaseAccessory';
 
 export type HueCharacteristicData = { color: { hue?: string }, color_mode: ColorModes }
 type DeviceWithHueCharacteristic = TuyaDevice<TuyaDeviceState & HueCharacteristicData>
 
 export class HueCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
     public static Title = 'Characteristic.Hue'
-    public static HomekitCharacteristic = Characteristic.Hue;
+
+    public static HomekitCharacteristic(accessory: BaseAccessory) {
+      return accessory.platform.Characteristic.Hue;
+    }
 
     public static DEFAULT_VALUE = 0;
 

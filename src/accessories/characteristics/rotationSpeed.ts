@@ -5,16 +5,19 @@ import {
   CharacteristicSetCallback,
   CharacteristicValue,
   Formats,
-} from 'hap-nodejs';
+} from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
-import {inspect} from 'util';
+import {BaseAccessory} from '../BaseAccessory';
 
 export type RotationSpeedCharacteristicData = { speed_level: number, speed: string }
 type DeviceWithRotationSpeedCharacteristic = TuyaDevice<TuyaDeviceState & RotationSpeedCharacteristicData>
 
 export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
     public static Title = 'Characteristic.RotationSpeed'
-    public static HomekitCharacteristic = Characteristic.RotationSpeed;
+
+    public static HomekitCharacteristic(accessory: BaseAccessory) {
+      return accessory.platform.Characteristic.RotationSpeed;
+    }
 
     public setProps(char?: Characteristic): Characteristic | undefined {
       return char?.setProps({
@@ -32,7 +35,6 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
 
     public get maxSpeedLevel(): number {
       const data = this.accessory.deviceConfig.data as unknown as RotationSpeedCharacteristicData;
-      this.accessory.log?.info(inspect(data), data.speed_level);
       return data.speed_level;
     }
 

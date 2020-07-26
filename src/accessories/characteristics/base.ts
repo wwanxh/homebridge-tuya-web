@@ -1,10 +1,10 @@
 import {BaseAccessory, CharacteristicConstructor} from '../BaseAccessory';
 import {LogLevel} from 'homebridge';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'hap-nodejs';
+import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 
 export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = BaseAccessory> {
     public static Title: string;
-    public static HomekitCharacteristic: CharacteristicConstructor
+    public static HomekitCharacteristic: (accessory: BaseAccessory) => CharacteristicConstructor;
 
     public static isSupportedByAccessory<Accessory extends BaseAccessory>(accessory: Accessory): boolean {
       accessory.log.error('Method `isSupportedByAccessory must be overwritten by Characteristic, missing for %s', this.Title);
@@ -34,7 +34,7 @@ export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = Ba
     }
 
     public get homekitCharacteristic(): CharacteristicConstructor {
-      return this.staticInstance.HomekitCharacteristic;
+      return this.staticInstance.HomekitCharacteristic(this.accessory);
     }
 
     private log(logLevel: LogLevel, message: string, ...args: unknown[]): void {

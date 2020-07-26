@@ -174,7 +174,7 @@ export class TuyaWebApi {
       }
     }
 
-    private debouncedDeviceDiscovery = debounce(this.discoverDevices, 100, {maxWait: 1000})
+    private debouncedDeviceDiscovery = debounce(this.discoverDevices, 500, {maxWait: 1000})
 
     private outstandingDeviceStateRequests: Map<string, DebouncedPromise<TuyaDeviceState>> = new Map()
 

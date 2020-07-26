@@ -1,13 +1,17 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'hap-nodejs';
+import {CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
+import {BaseAccessory} from '../BaseAccessory';
 
 export type OnCharacteristicData = { state: boolean | 'true' | 'false' }
 type DeviceWithOnCharacteristic = TuyaDevice<TuyaDeviceState & OnCharacteristicData>
 
 export class OnCharacteristic extends TuyaWebCharacteristic {
     public static Title = 'Characteristic.On'
-    public static HomekitCharacteristic = Characteristic.On;
+
+    public static HomekitCharacteristic(accessory: BaseAccessory) {
+      return accessory.platform.Characteristic.On;
+    }
 
     public static isSupportedByAccessory(accessory): boolean {
       return accessory.deviceConfig.data.state !== undefined;

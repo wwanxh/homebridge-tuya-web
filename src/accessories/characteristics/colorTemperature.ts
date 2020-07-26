@@ -1,7 +1,8 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'hap-nodejs';
+import {CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
 import {MapRange} from '../../helpers/MapRange';
+import {BaseAccessory} from '../BaseAccessory';
 
 export type ColorTemperatureCharacteristicData = { color_temp: number }
 type DeviceWithColorTemperatureCharacteristic = TuyaDevice<TuyaDeviceState & ColorTemperatureCharacteristicData>
@@ -11,7 +12,10 @@ type DeviceWithColorTemperatureCharacteristic = TuyaDevice<TuyaDeviceState & Col
 
 export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
     public static Title = 'Characteristic.ColorTemperature'
-    public static HomekitCharacteristic = Characteristic.ColorTemperature;
+
+    public static HomekitCharacteristic(accessory: BaseAccessory) {
+      return accessory.platform.Characteristic.ColorTemperature;
+    }
 
     private rangeMapper = MapRange.from(1000000 / 140, 1000000 / 500).to(10000, 1000)
 
