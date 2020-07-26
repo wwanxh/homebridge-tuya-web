@@ -1,5 +1,7 @@
 # homebridge-tuya-web
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Homebridge plugin for Tuya devices using a cloud Tuya Web Api.
 
 This Homebridge plugin is based on the Home Assistent Tuya integration that implements a special Tuya Home Assistant API.

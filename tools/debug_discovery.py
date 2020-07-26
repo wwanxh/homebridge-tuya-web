@@ -2,7 +2,7 @@
 import requests
 import pprint
 
-# CHANGE THIS - BEGGINING
+# CHANGE THIS - BEGINNING
 USERNAME = ""
 PASSWORD = ""
 REGION = "eu" # cn, eu, us

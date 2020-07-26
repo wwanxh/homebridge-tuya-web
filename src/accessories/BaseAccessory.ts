@@ -1,0 +1,177 @@
+import {HomebridgeAccessory, TuyaWebPlatform} from '../platform';
+import {Categories, Logger, WithUUID} from 'homebridge';
+import {Characteristic, CharacteristicGetCallback, CharacteristicValue, Nullable, Service} from 'hap-nodejs';
+import {TuyaDevice} from '../TuyaWebApi';
+import {PLUGIN_NAME} from '../settings';
+import {inspect} from 'util';
+
+export type CharacteristicConstructor = WithUUID<{
+    new(): Characteristic;
+}>;
+
+type UpdateCallback<DeviceConfig extends TuyaDevice> = (data?: DeviceConfig['data'], callback?: CharacteristicGetCallback) => void
+
+class Cache {
+    private state: Map<CharacteristicConstructor, {validUntil: number, value: Nullable<CharacteristicValue>}> = new Map();
+    private _valid = false;
+
+    public get valid(): boolean {
+      return this._valid && this.state.size > 0;
+    }
+
+    public invalidate() {
+      this._valid = false;
+    }
+
+    public set(char: CharacteristicConstructor, value: Nullable<CharacteristicValue>) {
+      const validUntil = Cache.getCurrentEpoch() + 15;
+      this.state.set(char, {
+        validUntil,
+        value,
+      });
+      this._valid = true;
+    }
+
+    public get(char: CharacteristicConstructor): Nullable<CharacteristicValue> {
+      const cache = this.state.get(char);
+      if(!this._valid || !cache || cache.validUntil < Cache.getCurrentEpoch()) {
+        return null;
+      }
+      return cache.value;
+    }
+
+    private static getCurrentEpoch(): number {
+      return Math.round((new Date()).getTime() / 1000);
+    }
+}
+
+export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice> {
+    public readonly log: Logger;
+    private readonly cache = new Cache();
+    private readonly serviceType: WithUUID<typeof Service>;
+    public readonly service?: Service;
+    public readonly deviceId: string;
+    private updateCallbackList: Map<CharacteristicConstructor, Nullable<UpdateCallback<DeviceConfig>>> = new Map();
+
+    constructor(
+        public readonly platform: TuyaWebPlatform,
+        public readonly homebridgeAccessory: HomebridgeAccessory<DeviceConfig>,
+        public readonly deviceConfig: DeviceConfig,
+        private readonly categoryType: Categories) {
+      this.log = platform.log;
+      this.deviceId = deviceConfig.id;
+
+      this.log.debug('[%s] deviceConfig: %s', this.deviceConfig.name, inspect(this.deviceConfig));
+
+      switch (categoryType) {
+        case Categories.LIGHTBULB:
+          this.serviceType = Service.Lightbulb;
+          break;
+        case Categories.SWITCH:
+          this.serviceType = Service.Switch;
+          break;
+        case Categories.OUTLET:
+          this.serviceType = Service.Outlet;
+          break;
+        case Categories.FAN:
+          this.serviceType = Service.Fanv2;
+          break;
+        default:
+          this.serviceType = Service.AccessoryInformation;
+      }
+
+      // Retrieve existing of create new Bridged Accessory
+      if (this.homebridgeAccessory) {
+        this.homebridgeAccessory.controller = this;
+        if (!this.homebridgeAccessory.context.deviceId) {
+          this.homebridgeAccessory.context.deviceId = this.deviceConfig.id;
+        }
+        this.log.info(
+          'Existing Accessory found [%s] [%s] [%s]',
+          homebridgeAccessory.displayName,
+          homebridgeAccessory.context.deviceId,
+          homebridgeAccessory.UUID);
+        this.homebridgeAccessory.displayName = this.deviceConfig.name;
+      } else {
+        this.log.info('Creating New Accessory %s', this.deviceConfig.id);
+        this.homebridgeAccessory = new this.platform.platformAccessory(
+          this.deviceConfig.name,
+          this.platform.generateUUID(this.deviceConfig.id),
+          categoryType);
+        this.homebridgeAccessory.context.deviceId = this.deviceConfig.id;
+        this.homebridgeAccessory.controller = this;
+        this.platform.registerPlatformAccessory(this.homebridgeAccessory);
+      }
+
+      // Create service
+      this.service = this.homebridgeAccessory.getService(this.serviceType);
+      if (this.service) {
+        this.service.setCharacteristic(Characteristic.Name, this.deviceConfig.name);
+      } else {
+        this.log.debug('Creating New Service %s', this.deviceConfig.id);
+        this.service = this.homebridgeAccessory.addService(this.serviceType, this.deviceConfig.name);
+      }
+
+      this.homebridgeAccessory.on('identify', this.onIdentify.bind(this));
+    }
+
+    public get name(): string {
+      return this.homebridgeAccessory.displayName;
+    }
+
+    public setCharacteristic(characteristic: CharacteristicConstructor, value: Nullable<CharacteristicValue>, updateHomekit = false) {
+      updateHomekit && this.service?.getCharacteristic(characteristic).updateValue(value);
+    }
+
+    public invalidateCache(): void {
+      this.cache.invalidate();
+    }
+
+    public getCachedState(char: CharacteristicConstructor): Nullable<CharacteristicValue> {
+      return this.cache.get(char);
+    }
+
+    public setCachedState(char: CharacteristicConstructor, value: Nullable<CharacteristicValue>): void {
+      return this.cache.set(char, value);
+    }
+
+    public onIdentify(): void {
+      this.log.info('[IDENTIFY] %s', this.name);
+    }
+
+    public updateAccessory(device: DeviceConfig) {
+      const setCharacteristic = (characteristic, value): void => {
+        const char = accessoryInformationService.getCharacteristic(characteristic) ||
+                accessoryInformationService.addCharacteristic(characteristic);
+        if (char) {
+          char.setValue(value);
+        }
+      };
+
+      this.homebridgeAccessory.displayName = device.name;
+      this.homebridgeAccessory._associatedHAPAccessory.displayName = device.name;
+      const accessoryInformationService = (
+        this.homebridgeAccessory.getService(Service.AccessoryInformation) ||
+            this.homebridgeAccessory.addService(Service.AccessoryInformation));
+      setCharacteristic(Characteristic.Name, device.name);
+
+      setCharacteristic(Characteristic.SerialNumber, this.deviceConfig.id);
+      setCharacteristic(Characteristic.Manufacturer, PLUGIN_NAME);
+      setCharacteristic(Characteristic.Model, this.categoryType);
+
+      // Update device specific state
+      this.updateState(device.data);
+    }
+
+    private updateState(data: DeviceConfig['data']): void {
+      for(const [, callback] of this.updateCallbackList) {
+        if(callback !== null) {
+          callback(data);
+        }
+      }
+    }
+
+    public addUpdateCallback(char: CharacteristicConstructor, callback: UpdateCallback<DeviceConfig>) {
+      this.updateCallbackList.set(char, callback);
+    }
+}
