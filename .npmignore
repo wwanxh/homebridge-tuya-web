@@ -4,6 +4,9 @@ src
 # Ignore helper functions
 tools
 
+# Ignore tests
+test
+
 # ------------- Defaults ------------- #
 
 # eslint
@@ -14,6 +17,9 @@ tsconfig.json
 
 # vscode
 .vscode
+
+# Intelij
+.idea
 
 # nodemon
 nodemon.json
@@ -101,7 +107,6 @@ web_modules/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/

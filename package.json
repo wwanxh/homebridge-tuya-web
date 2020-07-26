@@ -8,6 +8,7 @@
     "build": "rimraf ./dist && tsc",
     "lint": "eslint **/src/**/*.ts",
     "prepublishOnly": "npm run lint && npm run build",
+    "release": "np",
     "test": "ts-mocha test/**/*.spec.ts",
     "watch": "npm run build && npm link && nodemon"
   },
@@ -19,6 +20,9 @@
   ],
   "author": "Milo Cesar <milocesar1@gmail.com>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=10.17.0",
     "homebridge": ">=1.0.0"
@@ -45,6 +49,7 @@
     "homebridge": "^1.1.1",
     "mocha": "^6.2.3",
     "nodemon": "^2.0.4",
+    "np": "*",
     "rimraf": "^3.0.2",
     "ts-mocha": "^7.0.0",
     "ts-node": "^8.10.2",
