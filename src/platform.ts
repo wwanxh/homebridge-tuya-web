@@ -10,11 +10,15 @@ import {
 
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
 import {TuyaDevice, TuyaDeviceType, TuyaWebApi} from './TuyaWebApi';
-import {BaseAccessory} from './accessories/BaseAccessory';
-import {LightAccessory} from './accessories/LightAccessory';
-import {OutletAccessory} from './accessories/OutletAccessory';
-import {DimmerAccessory} from './accessories/DimmerAccessory';
-import {FanAccessory} from './accessories/FanAccessory';
+import {
+  BaseAccessory,
+  DimmerAccessory,
+  FanAccessory,
+  LightAccessory,
+  OutletAccessory,
+  SceneAccessory,
+  SwitchAccessory,
+} from './accessories';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
@@ -134,10 +138,10 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
 
       // Is device type overruled in config defaults?
       if (this.config.defaults) {
-        for (const def of this.config.defaults) {
-          if (def.id === device.id) {
-            deviceType = def.device_type || deviceType;
-            this.log.info('Device type is overruled in config to: ', deviceType);
+        for (const defaults of this.config.defaults) {
+          if (device.id === defaults.id) {
+            deviceType = defaults.device_type || deviceType;
+            this.log.info('Device type is overruled in config to: %s', deviceType);
           }
         }
       }
@@ -145,19 +149,25 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       // Construct new accessory
       /* eslint-disable @typescript-eslint/no-explicit-any */
       switch (deviceType) {
-        case 'light':
-          new LightAccessory(this, homebridgeAccessory, device as any);
+        case 'dimmer':
+          new DimmerAccessory(this, homebridgeAccessory, device as any);
           break;
         case 'fan':
           new FanAccessory(this, homebridgeAccessory, device as any);
           break;
-        case 'dimmer':
-          new DimmerAccessory(this, homebridgeAccessory, device as any);
+        case 'light':
+          new LightAccessory(this, homebridgeAccessory, device as any);
           break;
-        case 'switch':
         case 'outlet':
           new OutletAccessory(this, homebridgeAccessory, device as any);
           break;
+        case 'scene':
+          new SceneAccessory(this, homebridgeAccessory, device as any);
+          break;
+        case 'switch':
+          new SwitchAccessory(this, homebridgeAccessory, device as any);
+          break;
+
         default:
           if (!this.failedToInitAccessories.get(deviceType)) {
             this.log.warn('Could not init class for device type [%s]', deviceType);

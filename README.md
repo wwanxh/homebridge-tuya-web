@@ -33,19 +33,18 @@ npm i @milo526/homebridge-tuya-web -g
       "username": "xxxx@gmail.com",
       "password": "xxxxxxxxxx",
       "countryCode": "xx",
-      "platform": "smart_life",
-      "pollingInterval": 10
+      "platform": "tuya"
     }
 }
 ```
 
 The `options` has these properties:
 
-- `username`: Required. The username for the account that is registered in the Android/iOS App.
-- `password`: Required. The password for the account that is registered in the Android/iOS App.
-- `countryCode`: Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for USA or 86 for China.
-- `platform`: The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
-- `pollingInterval`: Optional. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes). Defaults to 10.
+- `username` Required. The username for the account that is registered in the Android/iOS App.
+- `password` Required. The password for the account that is registered in the Android/iOS App.
+- `countryCode` Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for USA or 86 for China.
+- `platform` The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
+- `pollingInterval` Optional. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes). Defaults to no polling.
 
 ## Overruling Device Types
 
@@ -70,8 +69,8 @@ As of version 0.1.6 it is possible to override values from the default. As of no
 
 The `defaults` has these properties:
 
-- `id`: Required. The id for the device that is registered in the Android/iOS App.
-- `device_type`: Optional. The `device_type` to be overruled. For now only device type `dimmer` is supported. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation. 
+- `id` The id for the device that is registered in the Android/iOS App.
+- `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`. 
 
 ## Supported Device Types
 

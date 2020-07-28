@@ -10,8 +10,8 @@ class RatelimitError extends Error {
   }
 }
 
-export type TuyaDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet';
-export type HomeAssitantDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet';
+export type TuyaDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet' | 'scene';
+export type HomeAssitantDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet' | 'scene';
 
 export type TuyaDeviceState = {
     online: boolean,
