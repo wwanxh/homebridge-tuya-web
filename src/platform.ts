@@ -75,7 +75,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         return;
       }
 
-      if (options.platform !== undefined && TuyaPlatforms.includes(options.platform)) {
+      if (options.platform !== undefined && !TuyaPlatforms.includes(options.platform)) {
         this.log.error('Invalid platform provided, received %s but must be one of %s', options.platform, TuyaPlatforms);
       }
 
@@ -256,20 +256,29 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         return [];
       }
 
-      const sceneIds = devices.filter(d => d.dev_type === 'scene').map(d => d.id);
+      const scenes: {[key: string]: string} = devices.filter(d => d.dev_type === 'scene').reduce((devices, device) => {
+        devices[device.id] = device.name;
+        return devices;
+      }, {});
 
       if (this.config.scenes === true) {
-        return sceneIds;
+        return Object.keys(scenes);
       }
 
       const whitelistedSceneIds: string[] = [];
 
       for (const toWhitelistSceneId of this.config.scenes as string[]) {
-        if (!sceneIds.includes(toWhitelistSceneId)) {
-          this.log.warn('Tried whitelisting non-existing scene-id %s', toWhitelistSceneId);
+        if (Object.keys(scenes).includes(toWhitelistSceneId)) {
+          whitelistedSceneIds.push(toWhitelistSceneId);
           continue;
         }
-        whitelistedSceneIds.push(toWhitelistSceneId);
+
+        if(Object.values(scenes).includes(toWhitelistSceneId)) {
+          whitelistedSceneIds.push(Object.keys(scenes).find(key => scenes[key] === toWhitelistSceneId)!);
+          continue;
+        }
+
+        this.log.warn('Tried whitelisting non-existing scene %s', toWhitelistSceneId);
       }
 
 

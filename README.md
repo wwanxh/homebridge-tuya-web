@@ -22,7 +22,7 @@ This Homebridge Plugin implements the following features:
 npm i @milo526/homebridge-tuya-web -g
 ```
 
-## Configuration
+# Configuration
 
 ```json
 {
@@ -70,9 +70,50 @@ As of version 0.1.6 it is possible to override values from the default. As of no
 The `defaults` has these properties:
 
 - `id` The id for the device that is registered in the Android/iOS App.
-- `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`. 
+- `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`.
 
-## Supported Device Types
+## Whitelisting scenes
+
+To prevent an overload of scenes clogging up your HomeKit devices, scenes are by default not exposed to HomeKit. If you wish to add Tuya scenes to homekit you will need to whitelist.
+
+### Add all scenes to HomeKit
+
+You can add all your tuya scenes to HomeKit by setting the `scenes` key to `true`.
+```json
+{
+  "platform": "TuyaWebPlatform",
+  "name": "TuyaWebPlatform",
+  "options":
+    {
+      ...
+    },
+  "scenes": true
+}
+``` 
+
+### Add specific scenes to HomeKit
+
+To add specific scenes to HomeKit you can set the `scenes` key to array in which you define either the names or ids of the scenes that you'd wish to expose.
+```json
+{
+  "platform": "TuyaWebPlatform",
+  "name": "TuyaWebPlatform",
+  "options":
+    {
+      ...
+    },
+  "scenes": [
+    "Scene-id",
+    "Scene-name"
+  ]
+}
+```
+
+### Add no scenes to HomeKit
+
+To explicitly disable scene support set the `scenes` key to `false`.
+
+# Supported Device Types
 
 There is currently support for the following device types within this Homebridge plugin:
 
@@ -86,7 +127,7 @@ The Web API also supports these devices, but are not implemented yet in the plug
 - **Climate** - Not yet supported.
 - **Cover** - Not yet supported.
 
-## How to check whether the API this library uses can control your device?
+# How to check whether the API this library uses can control your device?
 
 - Copy [this script](https://github.com/milo526/homebridge-tuya-web/blob/master/tools/debug_discovery.py) to your PC with Python
   installed or to https://repl.it/
@@ -108,7 +149,7 @@ These features are on my wishlist and need to be implemented:
 The source code also has some unit tests to test API calls. Run the following command to run the unit tests.
 
 ```
- mocha test/tuyawebapi_test.js
+ npm run test
 ```
 
 ## Version history
