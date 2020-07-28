@@ -87,7 +87,7 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
           this.homebridgeAccessory.context.deviceId = this.deviceConfig.id;
         }
         this.log.info(
-          'Existing Accessory found [%s] [%s] [%s]',
+          'Existing Accessory found [Name: %s] [Tuya ID: %s] [HomeBridge ID: %s]',
           homebridgeAccessory.displayName,
           homebridgeAccessory.context.deviceId,
           homebridgeAccessory.UUID);

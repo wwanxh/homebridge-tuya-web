@@ -9,7 +9,7 @@ import {
 } from 'homebridge';
 
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
-import {TuyaDevice, TuyaDeviceType, TuyaWebApi} from './TuyaWebApi';
+import {TuyaDevice, TuyaDeviceType, TuyaDeviceTypes, TuyaPlatform, TuyaPlatforms, TuyaWebApi} from './TuyaWebApi';
 import {
   BaseAccessory,
   DimmerAccessory,
@@ -19,10 +19,23 @@ import {
   SceneAccessory,
   SwitchAccessory,
 } from './accessories';
+import {DeepPartial} from './helpers/DeepPartial';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
     & { controller?: BaseAccessory<DeviceConfig> }
+
+type Config = {
+    options: {
+        username: string,
+        password: string,
+        countryCode: string,
+        platform: TuyaPlatform,
+        pollingInterval?: number
+    },
+    defaults: { id: string, device_type: TuyaDeviceType }[],
+    scenes: boolean | string[]
+}
 
 /**
  * HomebridgePlatform
@@ -38,7 +51,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     public readonly accessories: Map<string, HomebridgeAccessory<any>> = new Map();
 
     // Cloud polling interval in seconds
-    private pollingInterval?: number;
+    private readonly pollingInterval?: number;
 
     public readonly tuyaWebApi!: TuyaWebApi;
 
@@ -46,25 +59,35 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
 
     constructor(
         public readonly log: Logger,
-        public readonly config: PlatformConfig,
+        public readonly config: PlatformConfig & DeepPartial<Config>,
         public readonly api: API,
     ) {
       this.log.debug('Finished initializing platform:', this.config.name);
 
       if (!config || !config.options) {
-        this.log.info('No config found, disabling plugin.');
+        this.log.info('No options found in configuration file, disabling plugin.');
+        return;
+      }
+      const options = config.options;
+
+      if (options.username === undefined || options.password === undefined || options.countryCode === undefined) {
+        this.log.error('Missing required config parameter.');
         return;
       }
 
+      if (options.platform !== undefined && TuyaPlatforms.includes(options.platform)) {
+        this.log.error('Invalid platform provided, received %s but must be one of %s', options.platform, TuyaPlatforms);
+      }
+
       // Set cloud polling interval
-      this.pollingInterval = this.config.options.pollingInterval;
+      this.pollingInterval = config.options.pollingInterval;
 
       // Create Tuya Web API instance
       this.tuyaWebApi = new TuyaWebApi(
-        this.config.options.username,
-        this.config.options.password,
-        this.config.options.countryCode,
-        this.config.options.platform,
+        options.username,
+        options.password,
+        options.countryCode,
+        options.platform,
         this.log,
       );
 
@@ -132,19 +155,9 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     }
 
     private addAccessory(device: TuyaDevice): void {
-      let deviceType: TuyaDeviceType = device.dev_type || 'switch';
+      const deviceType: TuyaDeviceType = device.dev_type || 'switch';
       const uuid = this.api.hap.uuid.generate(device.id);
       const homebridgeAccessory = this.accessories.get(uuid)!;
-
-      // Is device type overruled in config defaults?
-      if (this.config.defaults) {
-        for (const defaults of this.config.defaults) {
-          if (device.id === defaults.id) {
-            deviceType = defaults.device_type || deviceType;
-            this.log.info('Device type is overruled in config to: %s', deviceType);
-          }
-        }
-      }
 
       // Construct new accessory
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -179,20 +192,88 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    /**
-     * This is an example method showing how to register discovered accessories.
-     * Accessories must only be registered once, previously created accessories
-     * must not be registered again to prevent "duplicate UUID" errors.
-     */
     async discoverDevices(): Promise<void> {
-      const devices = await this.tuyaWebApi.discoverDevices();
+      let devices = await this.tuyaWebApi.discoverDevices() || [];
+
+      // Is device type overruled in config defaults?
+      const parsedDefaults = this.parseDefaultsForDevices(devices);
+      for (const defaults of parsedDefaults) {
+        defaults.device.dev_type = defaults.device_type;
+        this.log.info('Device type for "%s" is overruled in config to: "%s"', defaults.device.name, defaults.device.dev_type);
+      }
+
+      const whitelistedSceneIds = this.getWhitelistedSceneIds(devices);
+      devices = devices.filter(d => d.dev_type !== 'scene' || whitelistedSceneIds.includes(d.id));
 
       // loop over the discovered devices and register each one if it has not already been registered
-      for (const device of devices || []) {
+      for (const device of devices) {
         this.addAccessory(device);
       }
 
-      this.refreshDeviceStates(devices);
+      await this.refreshDeviceStates(devices);
+    }
+
+    /**
+     * Returns a validated set of defaults and their devices for which the type will need to be overridden.
+     * @param devices
+     * @private
+     */
+    private parseDefaultsForDevices(devices: TuyaDevice[]): Array<Config['defaults'][number] & { device: TuyaDevice }> {
+      const defaults = this.config.defaults;
+
+      if (!defaults) {
+        return [];
+      }
+
+      const parsedDefaults: Array<Config['defaults'][number] & { device: TuyaDevice }> = [];
+      for (const configuredDefault of defaults as Config['defaults']) {
+        const device = devices.find(device => device.id === configuredDefault.id);
+        if (!device) {
+          this.log.warn('Added default for id: "%s" which is not a valid device-id.', configuredDefault.id);
+          continue;
+        }
+
+        if (!TuyaDeviceTypes.includes(configuredDefault.device_type)) {
+          this.log.warn(
+            'Added defaults for id: "%s" - device-type "%s" is not a valid device-type.', device.id, configuredDefault.device_type,
+          );
+          continue;
+        }
+
+        parsedDefaults.push({...configuredDefault, device});
+      }
+
+      return parsedDefaults;
+    }
+
+    /**
+     * Returns a list of all whitelisted scene Ids.
+     * @param devices
+     * @private
+     */
+    private getWhitelistedSceneIds(devices: TuyaDevice[]): string[] {
+      if (this.config.scenes === false || this.config.scenes === undefined) {
+        return [];
+      }
+
+      const sceneIds = devices.filter(d => d.dev_type === 'scene').map(d => d.id);
+
+      if (this.config.scenes === true) {
+        return sceneIds;
+      }
+
+      const whitelistedSceneIds: string[] = [];
+
+      for (const toWhitelistSceneId of this.config.scenes as string[]) {
+        if (!sceneIds.includes(toWhitelistSceneId)) {
+          this.log.warn('Tried whitelisting non-existing scene-id %s', toWhitelistSceneId);
+          continue;
+        }
+        whitelistedSceneIds.push(toWhitelistSceneId);
+      }
+
+
+      return whitelistedSceneIds;
     }
 
     public get platformAccessory(): typeof PlatformAccessory {

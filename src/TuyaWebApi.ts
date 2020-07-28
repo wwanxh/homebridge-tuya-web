@@ -10,8 +10,12 @@ class RatelimitError extends Error {
   }
 }
 
-export type TuyaDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet' | 'scene';
+export const TuyaDeviceTypes = ['light', 'fan', 'dimmer', 'switch', 'outlet', 'scene'] as const;
+export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
 export type HomeAssitantDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet' | 'scene';
+
+export const TuyaPlatforms = ['tuya', 'smart_life', 'jinvoo_smart'] as const;
+export type TuyaPlatform = typeof TuyaPlatforms[number];
 
 export type TuyaDeviceState = {
     online: boolean,
@@ -108,7 +112,7 @@ export class TuyaWebApi {
         private username: string,
         private password: string,
         private countryCode: string,
-        private tuyaPlatform: string = 'tuya',
+        private tuyaPlatform: TuyaPlatform = 'tuya',
         private log?: Logger) {
     }
 

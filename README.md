@@ -43,7 +43,7 @@ The `options` has these properties:
 - `username` Required. The username for the account that is registered in the Android/iOS App.
 - `password` Required. The password for the account that is registered in the Android/iOS App.
 - `countryCode` Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for USA or 86 for China.
-- `platform` The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
+- `platform` Optional. The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
 - `pollingInterval` Optional. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes). Defaults to no polling.
 
 ## Overruling Device Types
