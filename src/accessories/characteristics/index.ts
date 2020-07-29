@@ -1,3 +1,4 @@
+export * from './active';
 export * from './brightness';
 export * from './colorTemperature';
 export * from './hue';

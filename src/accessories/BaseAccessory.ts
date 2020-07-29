@@ -1,6 +1,14 @@
 import {HomebridgeAccessory, TuyaWebPlatform} from '../platform';
-import {Categories, Logger, WithUUID} from 'homebridge';
-import {Characteristic, CharacteristicGetCallback, CharacteristicValue, Nullable, Service} from 'homebridge';
+import {
+  Categories,
+  Characteristic,
+  CharacteristicGetCallback,
+  CharacteristicValue,
+  Logger,
+  Nullable,
+  Service,
+  WithUUID,
+} from 'homebridge';
 import {TuyaDevice} from '../TuyaWebApi';
 import {PLUGIN_NAME} from '../settings';
 import {inspect} from 'util';
@@ -12,7 +20,7 @@ export type CharacteristicConstructor = WithUUID<{
 type UpdateCallback<DeviceConfig extends TuyaDevice> = (data?: DeviceConfig['data'], callback?: CharacteristicGetCallback) => void
 
 class Cache {
-    private state: Map<CharacteristicConstructor, {validUntil: number, value: Nullable<CharacteristicValue>}> = new Map();
+    private state: Map<CharacteristicConstructor, { validUntil: number, value: Nullable<CharacteristicValue> }> = new Map();
     private _valid = false;
 
     public get valid(): boolean {
@@ -34,7 +42,7 @@ class Cache {
 
     public get(char: CharacteristicConstructor): Nullable<CharacteristicValue> {
       const cache = this.state.get(char);
-      if(!this._valid || !cache || cache.validUntil < Cache.getCurrentEpoch()) {
+      if (!this._valid || !cache || cache.validUntil < Cache.getCurrentEpoch()) {
         return null;
       }
       return cache.value;
@@ -88,18 +96,21 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
         }
         this.log.info(
           'Existing Accessory found [Name: %s] [Tuya ID: %s] [HomeBridge ID: %s]',
-          homebridgeAccessory.displayName,
-          homebridgeAccessory.context.deviceId,
-          homebridgeAccessory.UUID);
+          this.homebridgeAccessory.displayName,
+          this.homebridgeAccessory.context.deviceId,
+          this.homebridgeAccessory.UUID);
         this.homebridgeAccessory.displayName = this.deviceConfig.name;
       } else {
-        this.log.info('Creating New Accessory %s', this.deviceConfig.id);
         this.homebridgeAccessory = new this.platform.platformAccessory(
           this.deviceConfig.name,
           this.platform.generateUUID(this.deviceConfig.id),
           categoryType);
         this.homebridgeAccessory.context.deviceId = this.deviceConfig.id;
         this.homebridgeAccessory.controller = this;
+        this.log.info('Created new Accessory [Name: %s] [Tuya ID: %s] [HomeBridge ID: %s]',
+          this.homebridgeAccessory.displayName,
+          this.homebridgeAccessory.context.deviceId,
+          this.homebridgeAccessory.UUID);
         this.platform.registerPlatformAccessory(this.homebridgeAccessory);
       }
 
@@ -164,8 +175,8 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
     }
 
     private updateState(data: DeviceConfig['data']): void {
-      for(const [, callback] of this.updateCallbackList) {
-        if(callback !== null) {
+      for (const [, callback] of this.updateCallbackList) {
+        if (callback !== null) {
           callback(data);
         }
       }

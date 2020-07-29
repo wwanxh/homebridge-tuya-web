@@ -1,15 +1,7 @@
-import {
-  API,
-  Characteristic,
-  DynamicPlatformPlugin,
-  Logger,
-  PlatformAccessory,
-  PlatformConfig,
-  Service,
-} from 'homebridge';
+import {API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service} from 'homebridge';
 
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
-import {TuyaDevice, TuyaDeviceType, TuyaDeviceTypes, TuyaPlatform, TuyaPlatforms, TuyaWebApi} from './TuyaWebApi';
+import {TuyaDevice, TuyaDeviceType, TuyaDeviceTypes, TuyaPlatforms, TuyaWebApi} from './TuyaWebApi';
 import {
   BaseAccessory,
   DimmerAccessory,
@@ -19,23 +11,12 @@ import {
   SceneAccessory,
   SwitchAccessory,
 } from './accessories';
-import {DeepPartial} from './helpers/DeepPartial';
+import {TuyaDeviceDefaults, TuyaWebConfig} from './config';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
     & { controller?: BaseAccessory<DeviceConfig> }
 
-type Config = {
-    options: {
-        username: string,
-        password: string,
-        countryCode: string,
-        platform: TuyaPlatform,
-        pollingInterval?: number
-    },
-    defaults: { id: string, device_type: TuyaDeviceType }[],
-    scenes: boolean | string[]
-}
 
 /**
  * HomebridgePlatform
@@ -59,7 +40,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
 
     constructor(
         public readonly log: Logger,
-        public readonly config: PlatformConfig & DeepPartial<Config>,
+        public readonly config: TuyaWebConfig,
         public readonly api: API,
     ) {
       this.log.debug('Finished initializing platform:', this.config.name);
@@ -131,9 +112,10 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     }
 
     // Called from device classes
-    public registerPlatformAccessory(platformAccessory): void {
-      this.log.debug('Register Platform Accessory (%s)', platformAccessory.displayName);
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [platformAccessory]);
+    public registerPlatformAccessory(accessory: PlatformAccessory): void {
+      this.log.debug('Register Platform Accessory (%s)', accessory.displayName);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      this.accessories.set(accessory.UUID, accessory);
     }
 
     private async refreshDeviceStates(devices?: TuyaDevice[]): Promise<void> {
@@ -218,29 +200,29 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
      * @param devices
      * @private
      */
-    private parseDefaultsForDevices(devices: TuyaDevice[]): Array<Config['defaults'][number] & { device: TuyaDevice }> {
+    private parseDefaultsForDevices(devices: TuyaDevice[]): Array<TuyaDeviceDefaults & { device: TuyaDevice }> {
       const defaults = this.config.defaults;
 
       if (!defaults) {
         return [];
       }
 
-      const parsedDefaults: Array<Config['defaults'][number] & { device: TuyaDevice }> = [];
-      for (const configuredDefault of defaults as Config['defaults']) {
+      const parsedDefaults: Array<TuyaDeviceDefaults & { device: TuyaDevice }> = [];
+      for (const configuredDefault of defaults as Partial<TuyaDeviceDefaults>[]) {
         const device = devices.find(device => device.id === configuredDefault.id);
         if (!device) {
           this.log.warn('Added default for id: "%s" which is not a valid device-id.', configuredDefault.id);
           continue;
         }
 
-        if (!TuyaDeviceTypes.includes(configuredDefault.device_type)) {
+        if (configuredDefault.device_type === undefined || !TuyaDeviceTypes.includes(configuredDefault.device_type)) {
           this.log.warn(
             'Added defaults for id: "%s" - device-type "%s" is not a valid device-type.', device.id, configuredDefault.device_type,
           );
           continue;
         }
 
-        parsedDefaults.push({...configuredDefault, device});
+        parsedDefaults.push({...(configuredDefault as TuyaDeviceDefaults), device});
       }
 
       return parsedDefaults;
@@ -256,7 +238,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         return [];
       }
 
-      const scenes: {[key: string]: string} = devices.filter(d => d.dev_type === 'scene').reduce((devices, device) => {
+      const scenes: { [key: string]: string } = devices.filter(d => d.dev_type === 'scene').reduce((devices, device) => {
         devices[device.id] = device.name;
         return devices;
       }, {});
@@ -273,7 +255,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
           continue;
         }
 
-        if(Object.values(scenes).includes(toWhitelistSceneId)) {
+        if (Object.values(scenes).includes(toWhitelistSceneId)) {
           whitelistedSceneIds.push(Object.keys(scenes).find(key => scenes[key] === toWhitelistSceneId)!);
           continue;
         }

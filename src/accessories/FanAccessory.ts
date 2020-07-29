@@ -2,7 +2,7 @@ import {BaseAccessory} from './BaseAccessory';
 import {TuyaDevice, TuyaDeviceState} from '../TuyaWebApi';
 import {HomebridgeAccessory, TuyaWebPlatform} from '../platform';
 import {Categories} from 'homebridge';
-import {OnCharacteristic, OnCharacteristicData, RotationSpeedCharacteristic} from './characteristics';
+import {ActiveCharacteristic, OnCharacteristicData, RotationSpeedCharacteristic} from './characteristics';
 
 type FanAccessoryConfig = TuyaDevice & {
     data: TuyaDeviceState & OnCharacteristicData
@@ -16,7 +16,7 @@ export class FanAccessory extends BaseAccessory<FanAccessoryConfig> {
     deviceConfig: FanAccessoryConfig) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.FAN);
 
-    new OnCharacteristic(this as BaseAccessory);
+    new ActiveCharacteristic(this as BaseAccessory);
     new RotationSpeedCharacteristic(this as BaseAccessory);
   }
 }
