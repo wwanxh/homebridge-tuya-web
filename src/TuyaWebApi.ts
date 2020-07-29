@@ -192,7 +192,7 @@ export class TuyaWebApi {
 
 
       this.debouncedDeviceDiscovery((error) => {
-            this.log?.error(error);
+            this.log?.error(error.message);
       });
 
       return debouncedPromise.promise as Promise<TuyaDeviceState & T | undefined>;
