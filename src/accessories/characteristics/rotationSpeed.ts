@@ -5,9 +5,11 @@ import {
   CharacteristicSetCallback,
   CharacteristicValue,
   Formats,
+  Units,
 } from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
 import {BaseAccessory} from '../BaseAccessory';
+import {MapRange} from '../../helpers/MapRange';
 
 export type RotationSpeedCharacteristicData = { speed_level: number, speed: string }
 type DeviceWithRotationSpeedCharacteristic = TuyaDevice<TuyaDeviceState & RotationSpeedCharacteristicData>
@@ -19,13 +21,15 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
       return accessory.platform.Characteristic.RotationSpeed;
     }
 
+    public range = MapRange.from(this.minStep, this.maxSpeedLevel * this.minStep).to( 1, this.maxSpeedLevel);
+
     public setProps(char?: Characteristic): Characteristic | undefined {
       return char?.setProps({
-        unit: undefined,
+        unit: Units.PERCENTAGE,
         format: Formats.INT,
         minValue: 0,
-        maxValue: this.maxSpeedLevel,
-        minStep: 1,
+        maxValue: 100,
+        minStep: this.minStep,
       });
     }
 
@@ -37,6 +41,10 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
     public get maxSpeedLevel(): number {
       const data = this.accessory.deviceConfig.data as unknown as RotationSpeedCharacteristicData;
       return data.speed_level;
+    }
+
+    public get minStep(): number {
+      return Math.floor(100 / this.maxSpeedLevel);
     }
 
     public getRemoteValue(callback: CharacteristicGetCallback): void {
@@ -59,7 +67,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
 
     public setRemoteValue(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void {
       // Set device state in Tuya Web API
-      let value = Number(homekitValue);
+      let value = this.range.map(Number(homekitValue));
       // Set value to 1 if value is too small
       value = value < 1 ? 1 : value;
       // Set value to minSpeedLevel if value is too large
@@ -78,7 +86,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
 
     updateValue(data: DeviceWithRotationSpeedCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {
       if (data?.speed !== undefined) {
-        const speed = Number(data.speed);
+        const speed = this.range.inverseMap(Number(data.speed));
         this.accessory.setCharacteristic(this.homekitCharacteristic, speed, !callback);
         callback && callback(null, speed);
       }
