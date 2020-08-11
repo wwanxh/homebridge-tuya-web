@@ -1,5 +1,8 @@
-# homebridge-tuya-web
+# Homebridge Tuya Web
 
+[![GitHub release](https://img.shields.io/github/release/milo526/homebridge-tuya-web.svg)](https://github.com/milo526/homebridge-tuya-web/releases)
+[![npm](https://img.shields.io/npm/dm/@milo526/homebridge-tuya-web.svg)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web)
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Homebridge plugin for Tuya devices using a cloud Tuya Web Api.
@@ -12,14 +15,14 @@ See [Home Assistant Tuya integration](https://www.home-assistant.io/components/t
 
 This Homebridge Plugin implements the following features:
 
-- Controlling Tuya WIFI enabled devices form within HomeKit enabled iOS Apps.
-- Uses simple and lightweight Cloud Web API to control and get state update from Tuya devices. You will need a stable internet connection to control the devices and get frequent state updates.
-- Device State Caching. State of devices is cached in memory, every time a HomeKit app request status updates from the devices this results in a very fast and responsive response. State cache is updated every 10 seconds and when controled from a HomeKit app. There can be a latancy in updates when a device is controled form an App/Hub/Controller other than HomeKit, e.g. from the Tuya Android/iOS App.
+- Controlling Tuya WiFi enabled devices form within HomeKit enabled iOS Apps.
+- Uses simple and lightweight Cloud Web API to control and get state update from Tuya devices. You will need a stable internet connection to control the devices.
+- Device State Caching. State of devices is cached in memory, every time a HomeKit app request status updates from the devices this results in a very fast and responsive response. There can be a latency in updates when a device is controlled form an App/Hub/Controller other than HomeKit, e.g. from the Tuya Android/iOS App.
 
 ## Installation
 
 ```
-npm i @milo526/homebridge-tuya-web -g
+npm i -g @milo526/homebridge-tuya-web
 ```
 
 # Configuration
@@ -44,11 +47,13 @@ The `options` has these properties:
 - `password` Required. The password for the account that is registered in the Android/iOS App.
 - `countryCode` Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for USA or 86 for China.
 - `platform` Optional. The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
-- `pollingInterval` Optional. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes). Defaults to no polling.
+- `pollingInterval` Optional. Defaults to empty which entails no polling. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes).
+
+> :warning: Sign-in with Apple is **not** supported and, due to limitations imposed by Apple, will probably never be supported :warning:  
 
 ## Overruling Device Types
 
-As of version 0.1.6 it is possible to override values from the default. As of now, only overruling device types is possible. See example configuration below.
+It is possible to override values from the default. As of now, only overruling device types is possible. See example configuration below.
 
 ```json
 {
@@ -60,8 +65,8 @@ As of version 0.1.6 it is possible to override values from the default. As of no
     },
   "defaults": [
     {
-      "id": "<id>",
-      "device_type": "<device_type>"
+      "id": "<device name or id>",
+      "device_type": "<desired device type>"
     }
   ]
 }
@@ -69,7 +74,7 @@ As of version 0.1.6 it is possible to override values from the default. As of no
 
 The `defaults` has these properties:
 
-- `id` The id for the device that is registered in the Android/iOS App.
+- `id` The name or id for the device that is registered in the Android/iOS App.
 - `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`.
 
 ## Whitelisting scenes
@@ -93,7 +98,7 @@ You can add all your tuya scenes to HomeKit by setting the `scenes` key to `true
 
 ### Add specific scenes to HomeKit
 
-To add specific scenes to HomeKit you can set the `scenes` key to array in which you define either the names or ids of the scenes that you'd wish to expose.
+To add specific scenes to HomeKit you can set the `scenes` key to true and set `scenesWhitelist` to an array in which you define either the names or ids of the scenes that you'd wish to expose.
 ```json
 {
   "platform": "TuyaWebPlatform",
@@ -102,7 +107,8 @@ To add specific scenes to HomeKit you can set the `scenes` key to array in which
     {
       ...
     },
-  "scenes": [
+  "scenes": true,
+  "scenesWhitelist": [
     "Scene-id",
     "Scene-name"
   ]
@@ -119,11 +125,11 @@ There is currently support for the following device types within this Homebridge
 
 - **Switch/Outlet** - The platform supports switch and outlets/sockets.
 - **Light/Dimmer** - The platform supports most types of Tuya lights. This is partly implemented and only currently supports controlling the on/off state and the brightness. This can be used with a dimmer.
-- **Fan** - The platform supports most kinds of Tuya fans. This is partly implemented and only currently supports controlling the on/off state and speed control. Oscillation is not implemented due to lack of support in the Tuya API. 
+- **Fan** - The platform supports most kinds of Tuya fans. This is partly implemented and only currently supports controlling the on/off state and speed control. Oscillation is not implemented due to lack of support in the Tuya API.
+- **Scene** - Scenes support can be enabled in the config, this is disabled by default.
 
 The Web API also supports these devices, but are not implemented yet in the plugin.
 
-- **Scene** - Not yet supported, see discussions in #1 and #8.
 - **Climate** - Not yet supported.
 - **Cover** - Not yet supported.
 
@@ -151,24 +157,3 @@ The source code also has some unit tests to test API calls. Run the following co
 ```
  npm run test
 ```
-
-## Version history
-
-#### For newer versions please consult the [releases](https://github.com/milo526/homebridge-tuya-web/releases).
-
-##### Version 0.1.7 - 2019-08-18
-
-* Fixed not correct updating after reboot of Homebridge.
-
-##### Version 0.1.6 - 2019-08-18
-
-* Added light accessory (made by niksauer, thanks!!)
-* Added overruling device type in config. Some dimmers are reported by Tuya API as `lights`. Dimmers don't have hue and saturation and therfor the device type has to  be overruled to `dimmer`.
-
-##### Version 0.1.5 - 2019-08-18
-
-* Fixed issue #17 - Outlets and switches not turning off in Home app when turned off with other app.
-
-##### Version 0.1.4 - 2019-08-09
-
-* Switch to regional Tuya Web API server after authentication was successful (EU / China / USA).

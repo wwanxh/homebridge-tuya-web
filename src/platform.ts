@@ -12,6 +12,7 @@ import {
   SwitchAccessory,
 } from './accessories';
 import {TuyaDeviceDefaults, TuyaWebConfig} from './config';
+import {isArray} from 'util';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
@@ -209,15 +210,15 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
 
       const parsedDefaults: Array<TuyaDeviceDefaults & { device: TuyaDevice }> = [];
       for (const configuredDefault of defaults as Partial<TuyaDeviceDefaults>[]) {
-        const device = devices.find(device => device.id === configuredDefault.id);
+        const device = devices.find(device => device.id === configuredDefault.id || device.name === configuredDefault.id);
         if (!device) {
-          this.log.warn('Added default for id: "%s" which is not a valid device-id.', configuredDefault.id);
+          this.log.warn('Tried adding default for device: "%s" which is not a valid device-id or device-name.', configuredDefault.id);
           continue;
         }
 
         if (configuredDefault.device_type === undefined || !TuyaDeviceTypes.includes(configuredDefault.device_type)) {
           this.log.warn(
-            'Added defaults for id: "%s" - device-type "%s" is not a valid device-type.', device.id, configuredDefault.device_type,
+            'Added defaults for device: "%s" - device-type "%s" is not a valid device-type.', device.name, configuredDefault.device_type,
           );
           continue;
         }
@@ -234,22 +235,23 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
      * @private
      */
     private getWhitelistedSceneIds(devices: TuyaDevice[]): string[] {
-      if (this.config.scenes === false || this.config.scenes === undefined) {
+      if (!this.config.scenes) {
         return [];
       }
 
+      // scenes[id] = name
       const scenes: { [key: string]: string } = devices.filter(d => d.dev_type === 'scene').reduce((devices, device) => {
         devices[device.id] = device.name;
         return devices;
       }, {});
 
-      if (this.config.scenes === true) {
+      if(!Array.isArray(this.config.scenesWhitelist) || this.config.scenesWhitelist.length === 0) {
         return Object.keys(scenes);
       }
 
       const whitelistedSceneIds: string[] = [];
 
-      for (const toWhitelistSceneId of this.config.scenes as string[]) {
+      for (const toWhitelistSceneId of this.config.scenesWhitelist as string[]) {
         if (Object.keys(scenes).includes(toWhitelistSceneId)) {
           whitelistedSceneIds.push(toWhitelistSceneId);
           continue;
@@ -264,7 +266,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       }
 
 
-      return whitelistedSceneIds;
+      return [...new Set(whitelistedSceneIds)];
     }
 
     public get platformAccessory(): typeof PlatformAccessory {
