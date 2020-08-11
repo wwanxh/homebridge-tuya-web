@@ -1,5 +1,4 @@
 import {API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service} from 'homebridge';
-
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
 import {TuyaDevice, TuyaDeviceType, TuyaDeviceTypes, TuyaPlatforms, TuyaWebApi} from './TuyaWebApi';
 import {
@@ -12,7 +11,6 @@ import {
   SwitchAccessory,
 } from './accessories';
 import {TuyaDeviceDefaults, TuyaWebConfig} from './config';
-import {isArray} from 'util';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
@@ -188,6 +186,17 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       const whitelistedSceneIds = this.getWhitelistedSceneIds(devices);
       devices = devices.filter(d => d.dev_type !== 'scene' || whitelistedSceneIds.includes(d.id));
 
+      const cachedDeviceIds = [...this.accessories.keys()];
+      const availableDeviceIds = devices.map(d => this.generateUUID(d.id));
+
+      for (const cachedDeviceId of cachedDeviceIds) {
+        if (!availableDeviceIds.includes(cachedDeviceId)) {
+          const device = this.accessories.get(cachedDeviceId)!;
+          this.log.warn('Device: %s - is no longer available and will be removed', device.displayName);
+          this.removeAccessory(device);
+        }
+      }
+
       // loop over the discovered devices and register each one if it has not already been registered
       for (const device of devices) {
         this.addAccessory(device);
@@ -245,7 +254,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         return devices;
       }, {});
 
-      if(!Array.isArray(this.config.scenesWhitelist) || this.config.scenesWhitelist.length === 0) {
+      if (!Array.isArray(this.config.scenesWhitelist) || this.config.scenesWhitelist.length === 0) {
         return Object.keys(scenes);
       }
 
