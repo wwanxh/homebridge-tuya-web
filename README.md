@@ -1,9 +1,23 @@
+<p align="center">
+  <img src="https://github.com/homebridge/branding/blob/master/logos/homebridge-wordmark-logo-horizontal.png?raw=true" height="200px">  
+</p>
+<span align="center">
+
 # Homebridge Tuya Web
 
 [![GitHub release](https://img.shields.io/github/release/milo526/homebridge-tuya-web.svg)](https://github.com/milo526/homebridge-tuya-web/releases)
 [![npm](https://img.shields.io/npm/dm/@milo526/homebridge-tuya-web.svg)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[![Homebridge Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=discord)](https://discord.gg/hZubhrz)
+[![GitHub issues](https://img.shields.io/github/issues/milo526/homebridge-tuya-web)](https://github.com/milo526/homebridge-tuya-web/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/milo526/homebridge-tuya-web)](https://github.com/milo526/homebridge-tuya-web/pulls)
+[![Contribute](https://img.shields.io/badge/contribute-donate%20a%20coffee-brightgreen)](https://bunq.me/HomebridgeTuyaWeb)
+
+</span>
+
+## Overview
 
 Homebridge plugin for Tuya devices using a cloud Tuya Web Api.
 
@@ -24,6 +38,16 @@ This Homebridge Plugin implements the following features:
 ```
 npm i -g @milo526/homebridge-tuya-web
 ```
+
+## Support
+Please notice that there is no official support for this plugin, for help please [open an issue](https://github.com/milo526/homebridge-tuya-web/issues/new/choose) or see:
+
+<span align="center">
+
+[![Homebridge Discord](https://discordapp.com/api/guilds/432663330281226270/widget.png?style=banner2)](https://discord.gg/kqNCe2D) [![Homebridge Reddit](https://raw.githubusercontent.com/homebridge/homebridge/master/.github/homebridge-reddit.svg?sanitize=true)](https://www.reddit.com/r/homebridge/)
+
+</span>
+
 
 # Configuration
 
