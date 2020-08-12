@@ -11,6 +11,7 @@ import {
   SwitchAccessory,
 } from './accessories';
 import {TuyaDeviceDefaults, TuyaWebConfig} from './config';
+import {AuthenticationError} from './errors';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
@@ -76,18 +77,27 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       // in order to ensure they weren't added to homebridge already. This event can also be used
       // to start discovery of new accessories.
       this.api.on('didFinishLaunching', async () => {
-        await this.tuyaWebApi.getOrRefreshToken();
-        // run the method to discover / register your devices as accessories
-        await this.discoverDevices();
+        try {
+          await this.tuyaWebApi.getOrRefreshToken();
+          // run the method to discover / register your devices as accessories
+          await this.discoverDevices();
 
-        if (this.pollingInterval) {
-                this.log?.info('Enable cloud polling with interval %ss', this.pollingInterval);
-                // Set interval for refreshing device states
-                setInterval(() => {
-                  this.refreshDeviceStates().catch((error) => {
-                    this.log.error(error.message);
-                  });
-                }, this.pollingInterval * 1000);
+          if (this.pollingInterval) {
+            this.log?.info('Enable cloud polling with interval %ss', this.pollingInterval);
+            // Set interval for refreshing device states
+            setInterval(() => {
+              this.refreshDeviceStates().catch((error) => {
+                this.log.error(error.message);
+              });
+            }, this.pollingInterval * 1000);
+          }
+        } catch (e) {
+          if(e instanceof AuthenticationError) {
+            this.log.error('Authentication error: %s', e.message);
+          } else {
+            this.log.error(e.message);
+            this.log.debug(e);
+          }
         }
       });
     }

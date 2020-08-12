@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as querystring from 'querystring';
 import debounce from 'lodash.debounce';
 import {DebouncedPromise} from './helpers/DebouncedPromise';
+import {AuthenticationError} from './errors';
 
 class RatelimitError extends Error {
   constructor(message: string) {
@@ -235,13 +236,13 @@ export class TuyaWebApi {
             this.log?.debug('Requesting new token');
             // No token, lets get a token from the Tuya Web API
             if (!this.username) {
-              throw new Error('No username configured');
+              throw new AuthenticationError('No username configured');
             }
             if (!this.password) {
-              throw new Error('No password configured');
+              throw new AuthenticationError('No password configured');
             }
             if (!this.countryCode) {
-              throw new Error('No country code configured');
+              throw new AuthenticationError('No country code configured');
             }
 
             const form = {
@@ -255,33 +256,28 @@ export class TuyaWebApi {
             const formData = querystring.stringify(form);
             const contentLength = formData.length;
 
-            try {
-              const {data} = await
-              axios({
-                headers: {
-                  'Content-Length': contentLength,
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                url: '/homeassistant/auth.do',
-                baseURL: this.authBaseUrl,
-                data: formData,
-                method: 'POST',
-              });
-              if (data.responseStatus === 'error') {
-                    this.log?.error(`Authentication fault: ${data.errorMsg}`);
-              } else {
-                this.session = new Session(
-                  data.access_token,
-                  data.refresh_token,
-                  data.expires_in,
-                  data.access_token.substr(0, 2),
-                );
+            const {data} = await
+            axios({
+              headers: {
+                'Content-Length': contentLength,
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              url: '/homeassistant/auth.do',
+              baseURL: this.authBaseUrl,
+              data: formData,
+              method: 'POST',
+            });
+            if (data.responseStatus === 'error') {
+              throw new AuthenticationError(data.errorMsg);
+            } else {
+              this.session = new Session(
+                data.access_token,
+                data.refresh_token,
+                data.expires_in,
+                data.access_token.substr(0, 2),
+              );
 
-                return this.session;
-              }
-            } catch (e) {
-                this.log?.debug('Authentication error - %s', JSON.stringify(e));
-                throw e;
+              return this.session;
             }
 
       } else {
