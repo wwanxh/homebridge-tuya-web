@@ -80,7 +80,7 @@
             "id": {
               "title": "Device name or id",
               "type": "string",
-              "description": "Can be found in your platform app and is exposed during plugin boot",
+              "description": "Can be found in your platform app (device info -> virtual ID) and is exposed during plugin boot (use the Tuya ID)",
               "required": true
             },
             "device_type": {

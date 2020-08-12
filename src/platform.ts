@@ -130,7 +130,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         if (homebridgeAccessory) {
                 homebridgeAccessory.controller?.updateAccessory(device);
         } else if (!this.failedToInitAccessories.get(device.dev_type)?.includes(uuid)) {
-          this.log.error('Could not find accessory in dictionary (%s)', uuid);
+          this.log.error('Could not find Homebridge device with UUID (%s) for Tuya device (%s)', uuid, device.name);
         }
       }
     }

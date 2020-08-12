@@ -98,7 +98,7 @@ It is possible to override values from the default. As of now, only overruling d
 
 The `defaults` has these properties:
 
-- `id` The name or id for the device that is registered in the Android/iOS App.
+- `id` The name or id for the device that is registered in the Android/iOS App. When matching on ID please provide the `Tuya ID` as shown during Homebridge boot.
 - `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`.
 
 ## Whitelisting scenes
