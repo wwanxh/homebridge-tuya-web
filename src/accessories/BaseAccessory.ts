@@ -30,7 +30,7 @@ class Cache<DeviceConfig extends TuyaDevice = TuyaDevice> {
     }
 
     public set(data: DeviceConfig['data']): void {
-      this.validUntil = Cache.getCurrentEpoch() + TUYA_DEVICE_TIMEOUT;
+      this.validUntil = Cache.getCurrentEpoch() + TUYA_DEVICE_TIMEOUT + 5;
       this.value = data;
     }
 
@@ -146,7 +146,7 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
       return this.cache.get(always) as unknown as TuyaDeviceState & T;
     }
 
-    private debouncedDeviceStateRequest = debounce(this.resolveDeviceStateRequest, 200, {maxWait: 1000})
+    private debouncedDeviceStateRequest = debounce(this.resolveDeviceStateRequest, 500, {maxWait: 1500})
     private debouncedDeviceStateRequestPromise?: DebouncedPromise<TuyaDeviceState & DeviceConfig['data']>
     public async resolveDeviceStateRequest() {
       const promise = this.debouncedDeviceStateRequestPromise;
