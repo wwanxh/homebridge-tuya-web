@@ -18,26 +18,19 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
     }
 
     public getRemoteValue(callback: CharacteristicGetCallback): void {
-      // Retrieve state from cache
-      const cachedState = this.accessory.getCachedState(this.homekitCharacteristic);
-      if (cachedState) {
-        callback(null, cachedState);
-      } else {
-        // Retrieve device state from Tuya Web API
-        this.accessory.platform.tuyaWebApi.getDeviceState<OnCharacteristicData>(this.accessory.deviceId).then((data) => {
-          this.debug('[GET] %s', data?.state);
-          this.updateValue(data, callback);
-        }).catch(this.accessory.handleError('GET', callback));
-      }
+      this.accessory.getDeviceState<OnCharacteristicData>().then((data) => {
+        this.debug('[GET] %s', data?.state);
+        this.updateValue(data, callback);
+      }).catch(this.accessory.handleError('GET', callback));
+      
     }
 
     public setRemoteValue(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void {
       // Set device state in Tuya Web API
       const value = homekitValue ? 1 : 0;
 
-      this.accessory.platform.tuyaWebApi.setDeviceState(this.accessory.deviceId, 'turnOnOff', {value}).then(() => {
+      this.accessory.setDeviceState('turnOnOff', {value}, {state: homekitValue}).then(() => {
         this.debug('[SET] %s %s', homekitValue, value);
-        this.accessory.setCachedState(this.homekitCharacteristic, homekitValue);
         callback();
       }).catch(this.accessory.handleError('SET', callback));
     }

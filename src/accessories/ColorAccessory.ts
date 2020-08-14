@@ -2,20 +2,26 @@ import {BaseAccessory} from './BaseAccessory';
 import {TuyaDevice} from '../TuyaWebApi';
 import debounce from 'lodash.debounce';
 import {DebouncedPromise} from '../helpers/DebouncedPromise';
-import {BrightnessCharacteristic, HueCharacteristic, SaturationCharacteristic} from './characteristics';
+import {
+  BrightnessCharacteristic,
+  BrightnessCharacteristicData,
+  COLOR_MODES,
+  HueCharacteristic,
+  SaturationCharacteristic,
+} from './characteristics';
 
 
 export abstract class ColorAccessory<DeviceConfig extends TuyaDevice = TuyaDevice> extends BaseAccessory<DeviceConfig> {
   private async setRemoteColor(color: { hue: number, saturation: number }): Promise<void> {
-    const cachedBrightness = this.getCachedState(this.platform.Characteristic.Brightness);
-    const brightness = Number(cachedBrightness ? cachedBrightness : BrightnessCharacteristic.DEFAULT_VALUE);
+    const cachedValue = this.cachedValue<BrightnessCharacteristicData>(true);
+    const brightness = Number(cachedValue ? cachedValue.brightness : BrightnessCharacteristic.DEFAULT_VALUE);
     const tuyaData = {
       hue: color.hue,
       saturation: color.saturation / 100,
       brightness,
     };
 
-    await this.platform.tuyaWebApi.setDeviceState(this.deviceId, 'colorSet', {color: tuyaData});
+    await this.setDeviceState('colorSet', {color: tuyaData}, {color, color_mode: COLOR_MODES[0]});
 
   }
 

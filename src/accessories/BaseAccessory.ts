@@ -9,9 +9,11 @@ import {
   Service,
   WithUUID,
 } from 'homebridge';
-import {TuyaDevice} from '../TuyaWebApi';
-import {PLUGIN_NAME} from '../settings';
+import debounce from 'lodash.debounce';
+import {TuyaApiMethod, TuyaApiPayload, TuyaDevice, TuyaDeviceState} from '../TuyaWebApi';
+import {PLUGIN_NAME, TUYA_DEVICE_TIMEOUT} from '../settings';
 import {inspect} from 'util';
+import {DebouncedPromise} from '../helpers/DebouncedPromise';
 
 export type CharacteristicConstructor = WithUUID<{
     new(): Characteristic;
@@ -19,45 +21,45 @@ export type CharacteristicConstructor = WithUUID<{
 
 type UpdateCallback<DeviceConfig extends TuyaDevice> = (data?: DeviceConfig['data'], callback?: CharacteristicGetCallback) => void
 
-class Cache {
-    private state: Map<CharacteristicConstructor, { validUntil: number, value: Nullable<CharacteristicValue> }> = new Map();
-    private _valid = false;
+class Cache<DeviceConfig extends TuyaDevice = TuyaDevice> {
+    private value?: DeviceConfig['data'];
+    private validUntil = 0;
 
     public get valid(): boolean {
-      return this._valid && this.state.size > 0;
+      return this.validUntil > Cache.getCurrentEpoch() && this.value !== undefined;
     }
 
-    public invalidate() {
-      this._valid = false;
+    public set(data: DeviceConfig['data']): void {
+      this.validUntil = Cache.getCurrentEpoch() + TUYA_DEVICE_TIMEOUT;
+      this.value = data;
     }
 
-    public set(char: CharacteristicConstructor, value: Nullable<CharacteristicValue>) {
-      const validUntil = Cache.getCurrentEpoch() + 15;
-      this.state.set(char, {
-        validUntil,
-        value,
-      });
-      this._valid = true;
+    public merge(data: DeviceConfig['data']): void {
+      this.value = {...this.value, ...data};
     }
 
-    public get(char: CharacteristicConstructor): Nullable<CharacteristicValue> {
-      const cache = this.state.get(char);
-      if (!this._valid || !cache || cache.validUntil < Cache.getCurrentEpoch()) {
+    /**
+     *
+     * @param always - return the cache even if cache is not valid
+     */
+    public get(always = false): Nullable< DeviceConfig['data']> {
+      if(!always && !this.valid) {
         return null;
       }
-      return cache.value;
+
+      return this.value || null;
     }
 
     private static getCurrentEpoch(): number {
-      return Math.round((new Date()).getTime() / 1000);
+      return Math.ceil((new Date()).getTime() / 1000);
     }
 }
 
-type ErrorCallback = (error: any) => void;
+type ErrorCallback = (error: Error) => void;
 
 export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice> {
     public readonly log: Logger;
-    private readonly cache = new Cache();
+    private readonly cache = new Cache<DeviceConfig>();
     private readonly serviceType: WithUUID<typeof Service>;
     public readonly service?: Service;
     public readonly deviceId: string;
@@ -136,20 +138,53 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
       updateHomekit && this.service?.getCharacteristic(characteristic).updateValue(value);
     }
 
-    public invalidateCache(): void {
-      this.cache.invalidate();
-    }
-
-    public getCachedState(char: CharacteristicConstructor): Nullable<CharacteristicValue> {
-      return this.cache.get(char);
-    }
-
-    public setCachedState(char: CharacteristicConstructor, value: Nullable<CharacteristicValue>): void {
-      return this.cache.set(char, value);
-    }
-
     public onIdentify(): void {
       this.log.info('[IDENTIFY] %s', this.name);
+    }
+
+    public cachedValue<T>(always = false): Nullable<TuyaDeviceState & T> {
+      return this.cache.get(always) as unknown as TuyaDeviceState & T;
+    }
+
+    private debouncedDeviceStateRequest = debounce(this.resolveDeviceStateRequest, 200, {maxWait: 1000})
+    private debouncedDeviceStateRequestPromise?: DebouncedPromise<TuyaDeviceState & DeviceConfig['data']>
+    public async resolveDeviceStateRequest() {
+      const promise = this.debouncedDeviceStateRequestPromise;
+      if(!promise) {
+        return;
+      }
+      this.debouncedDeviceStateRequestPromise = undefined;
+      
+      const cached = this.cache.get();
+      if(cached !== null) {
+        return promise.resolve(cached);
+      }
+
+      this.platform.tuyaWebApi.getDeviceState(this.deviceId)
+        .then((data) => {
+          if(data) {
+            this.cache.set(data);
+          }
+          promise.resolve(data);
+        })
+        .catch(promise.reject);
+    }
+
+    public async getDeviceState<T>(): Promise<TuyaDeviceState & T | undefined> {
+      if(!this.debouncedDeviceStateRequestPromise) {
+        this.debouncedDeviceStateRequestPromise = new DebouncedPromise();
+      }
+
+      this.debouncedDeviceStateRequest();
+
+      return this.debouncedDeviceStateRequestPromise.promise as unknown as Promise<TuyaDeviceState & T | undefined>;
+    }
+
+    public async setDeviceState<Method extends TuyaApiMethod, T>
+    (method: Method, payload: TuyaApiPayload<Method>, cache: T): Promise<void> {
+      this.cache.merge(cache as unknown as TuyaDeviceState & T);
+
+      return this.platform.tuyaWebApi.setDeviceState(this.deviceId, method, payload);
     }
 
     public updateAccessory(device: DeviceConfig) {
@@ -191,7 +226,6 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
     public handleError(type: 'SET' | 'GET', callback: ErrorCallback): ErrorCallback {
       return (error) => {
         this.log.error('[%s] %s', type, error.message);
-        this.invalidateCache();
         callback(error);
       };
     }

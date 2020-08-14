@@ -23,17 +23,10 @@ export class SaturationCharacteristic extends TuyaWebCharacteristic<ColorAccesso
     }
 
     public getRemoteValue(callback: CharacteristicGetCallback): void {
-      // Retrieve state from cache
-      const cachedState = this.accessory.getCachedState(this.homekitCharacteristic);
-      if (cachedState) {
-        callback(null, cachedState);
-      } else {
-        // Retrieve device state from Tuya Web API
-        this.accessory.platform.tuyaWebApi.getDeviceState<SaturationCharacteristicData>(this.accessory.deviceId).then((data) => {
-          this.debug('[GET] %s', data?.color?.saturation);
-          this.updateValue(data, callback);
-        }).catch(this.accessory.handleError('GET', callback));
-      }
+      this.accessory.getDeviceState<SaturationCharacteristicData>().then((data) => {
+        this.debug('[GET] %s', data?.color?.saturation);
+        this.updateValue(data, callback);
+      }).catch(this.accessory.handleError('GET', callback));
     }
 
     public setRemoteValue(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void {
@@ -42,7 +35,6 @@ export class SaturationCharacteristic extends TuyaWebCharacteristic<ColorAccesso
 
       this.accessory.setColor({saturation: value}).then(() => {
         this.debug('[SET] %s', value);
-        this.accessory.setCachedState(this.homekitCharacteristic, homekitValue);
         callback();
       }).catch(this.accessory.handleError('SET', callback));
     }

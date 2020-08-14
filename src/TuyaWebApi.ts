@@ -1,19 +1,7 @@
 import {Logger} from 'homebridge';
 import axios, {AxiosRequestConfig} from 'axios';
 import * as querystring from 'querystring';
-import debounce from 'lodash.debounce';
-import {DebouncedPromise} from './helpers/DebouncedPromise';
-import {AuthenticationError} from './errors';
-
-class RatelimitError extends Error {
-  constructor(message: string, reason?: string) {
-    if (reason) {
-      message += ` - ${reason}`;
-    }
-
-    super(message);
-  }
-}
+import {AuthenticationError, RatelimitError} from './errors';
 
 export const TuyaDeviceTypes = ['light', 'fan', 'dimmer', 'switch', 'outlet', 'scene'] as const;
 export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
@@ -42,6 +30,13 @@ type TuyaHeader = {
 type DiscoveryPayload = {
     payload: {
         devices: TuyaDevice[]
+    },
+    header: TuyaHeader
+}
+
+type DeviceQueryPayload<State extends TuyaDeviceState = TuyaDeviceState> = {
+    payload: {
+        data: State
     },
     header: TuyaHeader
 }
@@ -129,10 +124,7 @@ export class TuyaWebApi {
       return this.discoverDevices();
     }
 
-    public async discoverDevices(errorCallback?: (error: Error) => void): Promise<TuyaDevice[] | undefined> {
-      const acceptedOutstandingDeviceStateRequest = new Map(this.outstandingDeviceStateRequests);
-      this.outstandingDeviceStateRequests = new Map();
-
+    public async discoverDevices(): Promise<TuyaDevice[] | undefined> {
       if (!this.session?.hasValidToken()) {
         throw new Error('No valid token');
       }
@@ -153,60 +145,47 @@ export class TuyaWebApi {
       );
 
       if (data.header && data.header.code === 'SUCCESS') {
-        if (data.payload && data.payload.devices) {
-          acceptedOutstandingDeviceStateRequest.forEach((promise, deviceId) => {
-            const tuyaDevice = data.payload.devices.find(device => device.id === deviceId);
-            if (tuyaDevice?.data) {
-              promise.resolve(tuyaDevice.data);
-            } else {
-              promise.reject(new Error('Device not found in discovery'));
-            }
-          });
-          return data.payload.devices;
-        }
-      } else if (data.header && data.header.code === 'FrequentlyInvoke') {
-        const rateLimitError = new RatelimitError('Requesting too quickly.', data.header.msg);
-        for (const {reject} of this.outstandingDeviceStateRequests.values()) {
-          reject(rateLimitError);
-        }
-        if (errorCallback) {
-          errorCallback(rateLimitError);
-        } else {
-          throw rateLimitError;
-        }
+        return data.payload.devices;
       } else {
-        const error = new Error(`No valid response from API: ${JSON.stringify(data)}`);
-        for (const {reject} of this.outstandingDeviceStateRequests.values()) {
-          reject(error);
-        }
-        if (errorCallback) {
-          errorCallback(error);
+        if (data.header && data.header.code === 'FrequentlyInvoke') {
+          throw new RatelimitError('Requesting too quickly.', data.header.msg);
         } else {
-          throw error;
+          throw new Error(`No valid response from API: ${JSON.stringify(data)}`);
         }
       }
     }
 
-    private debouncedDeviceDiscovery = debounce(this.discoverDevices, 500, {maxWait: 1000})
-
-    private outstandingDeviceStateRequests: Map<string, DebouncedPromise<TuyaDeviceState>> = new Map()
-
     public async getDeviceState<T>(deviceId: string): Promise<TuyaDeviceState & T | undefined> {
-      let debouncedPromise = this.outstandingDeviceStateRequests.get(deviceId);
-
-      if (!debouncedPromise) {
-        debouncedPromise = new DebouncedPromise<TuyaDeviceState>();
-        this.outstandingDeviceStateRequests.set(deviceId, debouncedPromise);
+      if (!this.session?.hasValidToken()) {
+        throw new Error('No valid token');
       }
 
+      const {data} = await this.sendRequest<DeviceQueryPayload<TuyaDeviceState & T>>(
+        '/homeassistant/skill',
+        {
+          header: {
+            name: 'QueryDevice',
+            namespace: 'query',
+            payloadVersion: 1,
+          },
+          payload: {
+            accessToken: this.session.accessToken,
+            devId: deviceId,
+            value: 1,
+          },
+        },
+        'GET',
+      );
 
-      this.debouncedDeviceDiscovery((error) => {
-        console.log(JSON.stringify(
-          error));
-            this.log?.error(error.message);
-      });
-
-      return debouncedPromise.promise as Promise<TuyaDeviceState & T | undefined>;
+      if (data.header && data.header.code === 'SUCCESS') {
+        return data.payload.data;
+      } else {
+        if (data.header && data.header.code === 'FrequentlyInvoke') {
+          throw new RatelimitError('Requesting too quickly.', data.header.msg);
+        } else {
+          throw new Error(`No valid response from API: ${JSON.stringify(data)}`);
+        }
+      }
     }
 
     public async setDeviceState<Method extends TuyaApiMethod>

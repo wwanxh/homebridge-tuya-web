@@ -32,7 +32,7 @@ export class MomentaryOnCharacteristic extends TuyaWebCharacteristic {
         return;
       }
 
-      this.accessory.platform.tuyaWebApi.setDeviceState(this.accessory.deviceId, 'turnOnOff', {value}).then(() => {
+      this.accessory.setDeviceState('turnOnOff', {value}, {}).then(() => {
         this.debug('[SET] %s %s', homekitValue, value);
         callback();
         const reset = () => {

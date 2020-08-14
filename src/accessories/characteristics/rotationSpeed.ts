@@ -48,17 +48,10 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
     }
 
     public getRemoteValue(callback: CharacteristicGetCallback): void {
-      // Retrieve state from cache
-      const cachedState = this.accessory.getCachedState(this.homekitCharacteristic);
-      if (cachedState) {
-        callback(null, cachedState);
-      } else {
-        // Retrieve device state from Tuya Web API
-        this.accessory.platform.tuyaWebApi.getDeviceState<RotationSpeedCharacteristicData>(this.accessory.deviceId).then((data) => {
-          this.debug('[GET] %s', data?.speed);
-          this.updateValue(data, callback);
-        }).catch(this.accessory.handleError('GET', callback));
-      }
+      this.accessory.getDeviceState<RotationSpeedCharacteristicData>().then((data) => {
+        this.debug('[GET] %s', data?.speed);
+        this.updateValue(data, callback);
+      }).catch(this.accessory.handleError('GET', callback));
     }
 
     public setRemoteValue(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void {
@@ -69,9 +62,8 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
       // Set value to minSpeedLevel if value is too large
       value = value > this.maxSpeedLevel ? this.maxSpeedLevel : value;
 
-      this.accessory.platform.tuyaWebApi.setDeviceState(this.accessory.deviceId, 'windSpeedSet', {value}).then(() => {
+      this.accessory.setDeviceState('windSpeedSet', {value}, {speed: value}).then(() => {
         this.debug('[SET] %s %s', homekitValue, value);
-        this.accessory.setCachedState(this.homekitCharacteristic, homekitValue);
         callback();
       }).catch(this.accessory.handleError('SET', callback));
     }

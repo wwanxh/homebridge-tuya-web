@@ -15,3 +15,13 @@ export const PLUGIN_NAME: string = packageJson.name;
  * The version the package is currently on as defined in package.json
  */
 export const VERSION: string = packageJson.version;
+
+/**
+ * The standard timeout for Tuya discovery requests
+ */
+export const TUYA_DISCOVERY_TIMEOUT = 300;
+
+/**
+ * The standard timeout for Tuya device requests.
+ */
+export const TUYA_DEVICE_TIMEOUT = 60;
