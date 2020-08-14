@@ -39,11 +39,7 @@ export class MomentaryOnCharacteristic extends TuyaWebCharacteristic {
                 this.accessory.service?.setCharacteristic(this.homekitCharacteristic, 0);
         };
         setTimeout(reset.bind(this), 100);
-      }).catch((error) => {
-        this.error('[SET] %s', error.message);
-        this.accessory.invalidateCache();
-        callback(error);
-      });
+      }).catch(this.accessory.handleError('SET', callback));
     }
 
     updateValue(data: DeviceWithOnCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {

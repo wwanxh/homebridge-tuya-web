@@ -32,11 +32,7 @@ export class HueCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
         this.accessory.platform.tuyaWebApi.getDeviceState<HueCharacteristicData>(this.accessory.deviceId).then((data) => {
           this.debug('[GET] %s', data?.color?.hue);
           this.updateValue(data, callback);
-        }).catch((error) => {
-          this.error('[GET] %s', error.message);
-          this.accessory.invalidateCache();
-          callback(error);
-        });
+        }).catch(this.accessory.handleError('GET', callback));
       }
     }
 
@@ -48,11 +44,7 @@ export class HueCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
         this.debug('[SET] %s', value);
         this.accessory.setCachedState(this.homekitCharacteristic, homekitValue);
         callback();
-      }).catch((error) => {
-        this.error('[SET] %s', error.message);
-        this.accessory.invalidateCache();
-        callback(error);
-      });
+      }).catch(this.accessory.handleError('SET', callback));
     }
 
     updateValue(data: DeviceWithHueCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {

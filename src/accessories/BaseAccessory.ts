@@ -53,6 +53,8 @@ class Cache {
     }
 }
 
+type ErrorCallback = (error: any) => void;
+
 export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice> {
     public readonly log: Logger;
     private readonly cache = new Cache();
@@ -184,5 +186,13 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
 
     public addUpdateCallback(char: CharacteristicConstructor, callback: UpdateCallback<DeviceConfig>) {
       this.updateCallbackList.set(char, callback);
+    }
+
+    public handleError(type: 'SET' | 'GET', callback: ErrorCallback): ErrorCallback {
+      return (error) => {
+        this.log.error('[%s] %s', type, error.message);
+        this.invalidateCache();
+        callback(error);
+      };
     }
 }

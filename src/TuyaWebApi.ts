@@ -1,12 +1,16 @@
 import {Logger} from 'homebridge';
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 import * as querystring from 'querystring';
 import debounce from 'lodash.debounce';
 import {DebouncedPromise} from './helpers/DebouncedPromise';
 import {AuthenticationError} from './errors';
 
 class RatelimitError extends Error {
-  constructor(message: string) {
+  constructor(message: string, reason?: string) {
+    if (reason) {
+      message += ` - ${reason}`;
+    }
+
     super(message);
   }
 }
@@ -30,7 +34,11 @@ export type TuyaDevice<State extends TuyaDeviceState = TuyaDeviceState> = {
     ha_type: HomeAssitantDeviceType
 }
 
-type TuyaHeader = { code: 'SUCCESS', payloadVersion: 1 } | { code: 'FrequentlyInvoke', payloadVersion: 1 };
+type TuyaHeader = {
+    code: 'SUCCESS' | 'FrequentlyInvoke' | string,
+    payloadVersion: 1,
+    msg?: string
+}
 type DiscoveryPayload = {
     payload: {
         devices: TuyaDevice[]
@@ -157,7 +165,7 @@ export class TuyaWebApi {
           return data.payload.devices;
         }
       } else if (data.header && data.header.code === 'FrequentlyInvoke') {
-        const rateLimitError = new RatelimitError('Requesting too quickly.');
+        const rateLimitError = new RatelimitError('Requesting too quickly.', data.header.msg);
         for (const {reject} of this.outstandingDeviceStateRequests.values()) {
           reject(rateLimitError);
         }
@@ -193,6 +201,8 @@ export class TuyaWebApi {
 
 
       this.debouncedDeviceDiscovery((error) => {
+        console.log(JSON.stringify(
+          error));
             this.log?.error(error.message);
       });
 
@@ -225,7 +235,7 @@ export class TuyaWebApi {
       if (data.header && data.header.code === 'SUCCESS') {
         return;
       } else if (data.header && data.header.code === 'FrequentlyInvoke') {
-        throw new RatelimitError('Requesting too quickly.');
+        throw new RatelimitError('Requesting too quickly.', data.header.msg);
       } else {
         throw new Error(`Invalid payload in response: ${JSON.stringify(data)}`);
       }
@@ -306,7 +316,9 @@ export class TuyaWebApi {
      * HTTP methods
     */
 
-    public async sendRequest<T = Record<string, unknown>>(url, data, method): Promise<{ data: T & { header: TuyaHeader } }> {
+    public async sendRequest<T = Record<string, unknown>>
+    (url: AxiosRequestConfig['url'], data: AxiosRequestConfig['data'], method: AxiosRequestConfig['method'])
+        : Promise<{ data: T & { header: TuyaHeader } }> {
         this.log?.debug(`Sending HTTP ${method} request to ${url}.`);
         const response = await axios({
           baseURL: this.session?.areaBaseUrl,

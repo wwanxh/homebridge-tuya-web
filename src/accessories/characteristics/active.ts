@@ -27,11 +27,7 @@ export class ActiveCharacteristic extends TuyaWebCharacteristic {
         this.accessory.platform.tuyaWebApi.getDeviceState<ActiveCharacteristicData>(this.accessory.deviceId).then((data) => {
           this.debug('[GET] %s', data?.state);
           this.updateValue(data, callback);
-        }).catch((error) => {
-          this.error('[GET] %s', error.message);
-          this.accessory.invalidateCache();
-          callback(error);
-        });
+        }).catch(this.accessory.handleError('GET', callback));
       }
     }
 
@@ -43,11 +39,7 @@ export class ActiveCharacteristic extends TuyaWebCharacteristic {
         this.debug('[SET] %s %s', homekitValue, value);
         this.accessory.setCachedState(this.homekitCharacteristic, homekitValue);
         callback();
-      }).catch((error) => {
-        this.error('[SET] %s', error.message);
-        this.accessory.invalidateCache();
-        callback(error);
-      });
+      }).catch(this.accessory.handleError('SET', callback));
     }
 
     updateValue(data: DeviceWithActiveCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {

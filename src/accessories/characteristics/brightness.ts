@@ -34,11 +34,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
         this.accessory.platform.tuyaWebApi.getDeviceState<BrightnessCharacteristicData>(this.accessory.deviceId).then((data) => {
           this.debug('[GET] %s', data?.brightness || data?.color?.brightness);
           this.updateValue(data, callback);
-        }).catch((error) => {
-          this.error('[GET] %s', error.message);
-          this.accessory.invalidateCache();
-          callback(error);
-        });
+        }).catch(this.accessory.handleError('GET', callback));
       }
     }
 
@@ -50,11 +46,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
         this.debug('[SET] %s', value);
         this.accessory.setCachedState(this.homekitCharacteristic, homekitValue);
         callback();
-      }).catch((error) => {
-        this.error('[SET] %s', error.message);
-        this.accessory.invalidateCache();
-        callback(error);
-      });
+      }).catch(this.accessory.handleError('SET', callback));
     }
 
     updateValue(data: DeviceWithBrightnessCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {
