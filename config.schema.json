@@ -64,8 +64,9 @@
           "pollingInterval": {
             "title": "Polling Interval",
             "type": "number",
-            "description": "The frequency in seconds that the plugin polls the cloud to get device updates. Can be left empty to only fetch on request.",
-            "required": false
+            "description": "The frequency in seconds that the plugin polls the cloud to get device updates. Can be left empty to only fetch on request. Must be 300 or larger",
+            "required": false,
+            "minimum": 300
           }
         }
       },

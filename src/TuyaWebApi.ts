@@ -298,7 +298,7 @@ export class TuyaWebApi {
     public async sendRequest<T = Record<string, unknown>>
     (url: AxiosRequestConfig['url'], data: AxiosRequestConfig['data'], method: AxiosRequestConfig['method'])
         : Promise<{ data: T & { header: TuyaHeader } }> {
-        this.log?.debug(`Sending HTTP ${method} request to ${url}.`);
+        this.log?.debug('Sending HTTP %s request to %s - Header: %s.', method, url, JSON.stringify(data.header));
         const response = await axios({
           baseURL: this.session?.areaBaseUrl,
           url,

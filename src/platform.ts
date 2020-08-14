@@ -1,5 +1,5 @@
 import {API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service} from 'homebridge';
-import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
+import {PLATFORM_NAME, PLUGIN_NAME, TUYA_DISCOVERY_TIMEOUT} from './settings';
 import {TuyaDevice, TuyaDeviceType, TuyaDeviceTypes, TuyaPlatforms, TuyaWebApi} from './TuyaWebApi';
 import {
   BaseAccessory,
@@ -83,13 +83,15 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
           await this.discoverDevices();
 
           if (this.pollingInterval) {
-            this.log?.info('Enable cloud polling with interval %ss', this.pollingInterval);
+            //Tuya will probably still complain if we fetch a new request on the exact second.
+            const pollingInterval = Math.max(this.pollingInterval, TUYA_DISCOVERY_TIMEOUT + 5);
+            this.log?.info('Enable cloud polling with interval %ss', pollingInterval);
             // Set interval for refreshing device states
             setInterval(() => {
               this.refreshDeviceStates().catch((error) => {
                 this.log.error(error.message);
               });
-            }, this.pollingInterval * 1000);
+            }, pollingInterval * 1000);
           }
         } catch (e) {
           if(e instanceof AuthenticationError) {
@@ -132,6 +134,8 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       if (!devices) {
         return;
       }
+
+      devices = this.filterDeviceList(devices);
 
       // Refresh device states
       for (const device of devices) {
@@ -183,6 +187,11 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
+    private filterDeviceList(devices: TuyaDevice[]) {
+      const whitelistedSceneIds = this.getWhitelistedSceneIds(devices);
+      return devices.filter(d => d.dev_type !== 'scene' || whitelistedSceneIds.includes(d.id));
+    }
+
     async discoverDevices(): Promise<void> {
       let devices = await this.tuyaWebApi.discoverDevices() || [];
 
@@ -193,8 +202,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         this.log.info('Device type for "%s" is overruled in config to: "%s"', defaults.device.name, defaults.device.dev_type);
       }
 
-      const whitelistedSceneIds = this.getWhitelistedSceneIds(devices);
-      devices = devices.filter(d => d.dev_type !== 'scene' || whitelistedSceneIds.includes(d.id));
+      devices = this.filterDeviceList(devices);
 
       const cachedDeviceIds = [...this.accessories.keys()];
       const availableDeviceIds = devices.map(d => this.generateUUID(d.id));
