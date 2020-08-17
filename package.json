@@ -10,7 +10,8 @@
     "prepublishOnly": "npm run lint && npm run build",
     "release": "np",
     "test": "ts-mocha test/**/*.spec.ts",
-    "watch": "npm run build && npm link && nodemon"
+    "watch": "npm run build && npm link && nodemon",
+    "clear-cache": "rimraf ~/.homebridge/accessories/cachedAccessories && rimraf ~/.homebridge/persist/*"
   },
   "keywords": [
     "homebridge",
