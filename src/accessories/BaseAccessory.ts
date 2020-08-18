@@ -4,7 +4,7 @@ import {
   Characteristic,
   CharacteristicGetCallback,
   CharacteristicValue,
-  Logger,
+  Logger, LogLevel,
   Nullable,
   Service,
   WithUUID,
@@ -14,6 +14,7 @@ import {TuyaApiMethod, TuyaApiPayload, TuyaDevice, TuyaDeviceState} from '../Tuy
 import {PLUGIN_NAME, TUYA_DEVICE_TIMEOUT} from '../settings';
 import {inspect} from 'util';
 import {DebouncedPromise} from '../helpers/DebouncedPromise';
+import {RatelimitError} from '../errors';
 
 export type CharacteristicConstructor = WithUUID<{
     new(): Characteristic;
@@ -32,6 +33,13 @@ class Cache<DeviceConfig extends TuyaDevice = TuyaDevice> {
     public set(data: DeviceConfig['data']): void {
       this.validUntil = Cache.getCurrentEpoch() + TUYA_DEVICE_TIMEOUT + 5;
       this.value = data;
+    }
+
+    public renew() {
+      const data = this.get(true);
+      if(data) {
+        this.set(data);
+      }
     }
 
     public merge(data: DeviceConfig['data']): void {
@@ -151,30 +159,48 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
     public async resolveDeviceStateRequest() {
       const promise = this.debouncedDeviceStateRequestPromise;
       if(!promise) {
+        this.error('Could not find base accessory promise.');
         return;
       }
+      this.debug('Unsetting debouncedDeviceStateRequestPromise');
       this.debouncedDeviceStateRequestPromise = undefined;
       
       const cached = this.cache.get();
       if(cached !== null) {
+        this.debug('Resolving resolveDeviceStateRequest from cache');
         return promise.resolve(cached);
       }
 
       this.platform.tuyaWebApi.getDeviceState(this.deviceId)
         .then((data) => {
           if(data) {
+            this.debug('Set device state request cache');
             this.cache.set(data);
           }
+          this.debug('Resolving resolveDeviceStateRequest from remote');
           promise.resolve(data);
         })
-        .catch(promise.reject);
+        .catch((error) => {
+          if(error instanceof RatelimitError) {
+            this.debug('Renewing cache due to RateLimitError');
+            const data = this.cache.get(true);
+            if(data) {
+              this.cache.renew();
+              return promise.resolve(data);
+            }
+          }
+          promise.reject(error);
+        });
     }
 
     public async getDeviceState<T>(): Promise<TuyaDeviceState & T | undefined> {
+      this.debug('Requesting device state');
       if(!this.debouncedDeviceStateRequestPromise) {
+        this.debug('Creating new debounced promise');
         this.debouncedDeviceStateRequestPromise = new DebouncedPromise();
       }
 
+      this.debug('Triggering debouncedDeviceStateRequest');
       this.debouncedDeviceStateRequest();
 
       return this.debouncedDeviceStateRequestPromise.promise as unknown as Promise<TuyaDeviceState & T | undefined>;
@@ -212,6 +238,7 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
     }
 
     private updateState(data: DeviceConfig['data']): void {
+      this.cache.set(data);
       for (const [, callback] of this.updateCallbackList) {
         if (callback !== null) {
           callback(data);
@@ -225,8 +252,28 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
 
     public handleError(type: 'SET' | 'GET', callback: ErrorCallback): ErrorCallback {
       return (error) => {
-        this.log.error('[%s] %s', type, error.message);
+        this.error('[%s] %s', type, error.message);
         callback(error);
       };
+    }
+
+    private shortcutLog(logLevel: LogLevel, message: string, ...args: unknown[]): void {
+      this.log.log(logLevel, `[%s] - ${message}`, this.name, ...args);
+    }
+
+    protected debug(message: string, ...args: unknown[]): void {
+      this.shortcutLog(LogLevel.DEBUG, message, ...args);
+    }
+
+    protected info(message: string, ...args: unknown[]): void {
+      this.shortcutLog(LogLevel.INFO, message, ...args);
+    }
+
+    protected warn(message: string, ...args: unknown[]): void {
+      this.shortcutLog(LogLevel.WARN, message, ...args);
+    }
+
+    protected error(message: string, ...args: unknown[]): void {
+      this.shortcutLog(LogLevel.ERROR, message, ...args);
     }
 }
