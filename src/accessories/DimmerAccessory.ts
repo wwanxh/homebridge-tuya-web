@@ -5,7 +5,7 @@ import {Categories} from 'homebridge';
 import {OnCharacteristic, OnCharacteristicData} from './characteristics';
 
 type DimmerAccessoryConfig = TuyaDevice & {
-    data: TuyaDeviceState & OnCharacteristicData
+  data: TuyaDeviceState & OnCharacteristicData
 }
 
 export class DimmerAccessory extends BaseAccessory<DimmerAccessoryConfig> {

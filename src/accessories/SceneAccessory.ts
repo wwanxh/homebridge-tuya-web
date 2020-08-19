@@ -5,7 +5,7 @@ import {Categories} from 'homebridge';
 import {MomentaryOnCharacteristic} from './characteristics/momentaryOn';
 
 type SceneAccessoryConfig = TuyaDevice & {
-    data: never
+  data: never
 }
 
 export class SceneAccessory extends BaseAccessory<SceneAccessoryConfig> {

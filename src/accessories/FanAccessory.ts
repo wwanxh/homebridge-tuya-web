@@ -5,7 +5,7 @@ import {Categories} from 'homebridge';
 import {ActiveCharacteristic, OnCharacteristicData, RotationSpeedCharacteristic} from './characteristics';
 
 type FanAccessoryConfig = TuyaDevice & {
-    data: TuyaDeviceState & OnCharacteristicData
+  data: TuyaDeviceState & OnCharacteristicData
 }
 
 export class FanAccessory extends BaseAccessory<FanAccessoryConfig> {
