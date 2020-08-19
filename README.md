@@ -70,10 +70,12 @@ The `options` has these properties:
 - `username` Required. The username for the account that is registered in the Android/iOS App.
 - `password` Required. The password for the account that is registered in the Android/iOS App.
 - `countryCode` Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for USA or 86 for China.
-- `platform` Optional. The App where your account is registered. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
-- `pollingInterval` Optional. Defaults to empty which entails no polling. The frequency in **seconds** that the plugin polls the cloud to get device updates. When the devices are exclusively controlled through Homebridge, you can set this to a low frequency (high interval number, e.g. 180 = 3 minutes).
+- `platform` Optional. The App where you registered your account. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
+- `pollingInterval` Optional. Defaults to empty which entails no polling. The frequency in **seconds** that the plugin polls the cloud to get device updates. When you exclusively control the devices through Homebridge, you can set this to a low frequency (high interval number, e.g. 1800 = 30 minutes).
 
 > :warning: Sign-in with Apple is **not** supported and, due to limitations imposed by Apple, will probably never be supported :warning:  
+
+All options outlines below are optional, they are useful to provide finer control on the working of the plugin.
 
 ## Overruling Device Types
 
@@ -100,6 +102,24 @@ The `defaults` has these properties:
 
 - `id` The name or id for the device that is registered in the Android/iOS App. When matching on ID please provide the `Tuya ID` as shown during Homebridge boot.
 - `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`.
+
+## Hiding devices
+
+There are some valid reasons why you might not want to expose certain devices to HomeKit. You might for example have another plugin active which also exposes certain Tuya devices, adding these devices to this list will prevent them from showing up multiple times.
+
+```json
+{
+  "platform": "TuyaWebPlatform",
+  "name": "TuyaWebPlatform",
+  "options":
+    {
+      ...
+    },
+  "hiddenAccessories": [
+    "<device name or id>"
+  ]
+}
+```
 
 ## Whitelisting scenes
 
@@ -149,7 +169,7 @@ There is currently support for the following device types within this Homebridge
 
 - **Switch/Outlet** - The platform supports switch and outlets/sockets.
 - **Light/Dimmer** - The platform supports most types of Tuya lights. This is partly implemented and only currently supports controlling the on/off state and the brightness. This can be used with a dimmer.
-- **Fan** - The platform supports most kinds of Tuya fans. This is partly implemented and only currently supports controlling the on/off state and speed control. Oscillation is not implemented due to lack of support in the Tuya API.
+- **Fan** - The platform supports most kinds of Tuya fans. This is partly implemented and only currently supports controlling the on/off state and speed control. The plugin lacks support for oscillation due to a Tuya limitation.
 - **Scene** - Scenes support can be enabled in the config, this is disabled by default.
 
 The Web API also supports these devices, but are not implemented yet in the plugin.
