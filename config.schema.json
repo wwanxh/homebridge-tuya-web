@@ -147,6 +147,16 @@
           "type": "string",
           "required": true
         }
+      },
+      "hiddenAccessories": {
+        "title": "Accessories to hide from Homekit",
+        "type": "array",
+        "required": false,
+        "items": {
+          "title": "Accessory name or id",
+          "type": "string",
+          "required": true
+        }
       }
     }
   },
@@ -188,6 +198,17 @@
             },
             {
               "key": "defaults[].device_type"
+            }
+          ]
+        },
+        {
+          "title": "Hidden accessories",
+          "type": "array",
+          "description": "Enter the identifiers of accessories that you wish not to expose to HomeKit.",
+          "items": [
+            {
+              "key": "hiddenAccessories[]",
+              "required": true
             }
           ]
         },

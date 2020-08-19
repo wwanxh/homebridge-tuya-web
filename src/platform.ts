@@ -191,10 +191,10 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       return [];
     }
     const allowedSceneIds = this.getAllowedSceneIds(devices);
-    const disallowedDeviceIds = this.getDisallowedAccessoryIds(devices);
+    const hiddenAccessoryIds = this.getHiddenAccessoryIds(devices);
     return devices
       .filter(d => d.dev_type !== 'scene' || allowedSceneIds.includes(d.id))
-      .filter(d => !disallowedDeviceIds.includes(d.id));
+      .filter(d => !hiddenAccessoryIds.includes(d.id));
       
   }
 
@@ -315,30 +315,30 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
    * @param devices
    * @private
    */
-  private getDisallowedAccessoryIds(devices:TuyaDevice[]): string[] {
-    if(!this.config.disallowedAccessories) {
+  private getHiddenAccessoryIds(devices:TuyaDevice[]): string[] {
+    if(!this.config.hiddenAccessories) {
       return [];
     }
 
-    if (!Array.isArray(this.config.disallowedAccessories) || this.config.disallowedAccessories.length === 0) {
+    if (!Array.isArray(this.config.hiddenAccessories) || this.config.hiddenAccessories.length === 0) {
       return [];
     }
 
     const deviceList = new DeviceList(devices);
 
-    const disallowedAccessoryIdentifiers: string[] = [];
+    const hiddenAccessoryIdentifiers: string[] = [];
 
-    for (const toDisallowAccessoryIdentifier of this.config.disallowedAccessories as string[]) {
+    for (const toDisallowAccessoryIdentifier of this.config.hiddenAccessories as string[]) {
       const deviceIdentifier = deviceList.find(toDisallowAccessoryIdentifier);
       if (deviceIdentifier) {
-        disallowedAccessoryIdentifiers.push(deviceIdentifier);
+        hiddenAccessoryIdentifiers.push(deviceIdentifier);
         continue;
       }
 
       this.log.warn('Tried disallowing non-existing device %s', toDisallowAccessoryIdentifier);
     }
 
-    return [...new Set(disallowedAccessoryIdentifiers)];
+    return [...new Set(hiddenAccessoryIdentifiers)];
   }
 
   public get platformAccessory(): typeof PlatformAccessory {
