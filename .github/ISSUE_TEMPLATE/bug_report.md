@@ -24,10 +24,11 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Device**
- - Plugin: [See manufacturer in your homekit device]
- - Version: [See firmware in your homekit device]
- - Model : [See model in your homekit device]
+ - Plugin Version: [See firmware in your homekit device]
+ - Homebridge config: [Extract the plugin config from your homebridge config file]
  - Device-config: [Follow the steps as described [here](https://github.com/milo526/homebridge-tuya-web#how-to-check-whether-the-api-this-library-uses-can-control-your-device) and post the output]
 
 **Additional context**
 Add any other context about the problem here.
+
+Please note that not following this template might result in closing your bug report with or without further notice.
