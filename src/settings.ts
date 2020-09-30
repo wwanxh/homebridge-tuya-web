@@ -19,7 +19,7 @@ export const VERSION: string = packageJson.version;
 /**
  * The standard timeout for Tuya discovery requests
  */
-export const TUYA_DISCOVERY_TIMEOUT = 300;
+export const TUYA_DISCOVERY_TIMEOUT = 600;
 
 /**
  * The standard timeout for Tuya device requests.
