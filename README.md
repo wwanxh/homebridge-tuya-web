@@ -73,7 +73,8 @@ The `options` has these properties:
 - `platform` Optional. The App where you registered your account. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
 - `pollingInterval` Optional. Defaults to empty which entails no polling. The frequency in **seconds** that the plugin polls the cloud to get device updates. When you exclusively control the devices through Homebridge, you can set this to a low frequency (high interval number, e.g. 1800 = 30 minutes).
 
-> :warning: Sign-in with Apple is **not** supported and, due to limitations imposed by Apple, will probably never be supported :warning:  
+> :warning: Sign-in with Apple, Google, Facebook or any other provider is **not** supported and, due to limitations, will probably never be supported :warning:  
+> Please make sure your account is created using a plain old username and password combination.
 
 All options outlines below are optional, they are useful to provide finer control on the working of the plugin.
 
