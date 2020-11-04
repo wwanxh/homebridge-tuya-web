@@ -96,6 +96,9 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
       case Categories.FAN:
         this.serviceType = platform.Service.Fanv2;
         break;
+      case Categories.THERMOSTAT:
+        this.serviceType = platform.Service.Thermostat;
+        break;
       default:
         this.serviceType = platform.Service.AccessoryInformation;
     }
@@ -171,26 +174,25 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
       return promise.resolve(cached);
     }
 
-    this.platform.tuyaWebApi.getDeviceState(this.deviceId)
-      .then((data) => {
+    try {
+      const data = await this.platform.tuyaWebApi.getDeviceState(this.deviceId);
+      if(data) {
+        this.debug('Set device state request cache');
+        this.cache.set(data);
+      }
+      this.debug('Resolving resolveDeviceStateRequest from remote');
+      promise.resolve(data);
+    } catch (error) {
+      if(error instanceof RatelimitError) {
+        this.debug('Renewing cache due to RateLimitError');
+        const data = this.cache.get(true);
         if(data) {
-          this.debug('Set device state request cache');
-          this.cache.set(data);
+          this.cache.renew();
+          return promise.resolve(data);
         }
-        this.debug('Resolving resolveDeviceStateRequest from remote');
-        promise.resolve(data);
-      })
-      .catch((error) => {
-        if(error instanceof RatelimitError) {
-          this.debug('Renewing cache due to RateLimitError');
-          const data = this.cache.get(true);
-          if(data) {
-            this.cache.renew();
-            return promise.resolve(data);
-          }
-        }
-        promise.reject(error);
-      });
+      }
+      promise.reject(error);
+    }
   }
 
   public async getDeviceState<T>(): Promise<TuyaDeviceState & T | undefined> {

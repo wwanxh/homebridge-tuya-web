@@ -13,6 +13,7 @@ import {
 import {TuyaDeviceDefaults, TuyaWebConfig} from './config';
 import {AuthenticationError} from './errors';
 import {DeviceList} from './helpers/DeviceList';
+import {ClimateAccessory} from './accessories/ClimateAccessory';
 
 export type HomebridgeAccessory<DeviceConfig extends TuyaDevice> =
     PlatformAccessory
@@ -156,6 +157,9 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     // Construct new accessory
     /* eslint-disable @typescript-eslint/no-explicit-any */
     switch (deviceType) {
+      case 'climate':
+        new ClimateAccessory(this, homebridgeAccessory, device as any);
+        break;
       case 'dimmer':
         new DimmerAccessory(this, homebridgeAccessory, device as any);
         break;

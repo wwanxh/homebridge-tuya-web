@@ -2,8 +2,9 @@ import {Logger} from 'homebridge';
 import axios, {AxiosRequestConfig} from 'axios';
 import * as querystring from 'querystring';
 import {AuthenticationError, RatelimitError} from './errors';
+import {ClimateMode} from './accessories/ClimateAccessory';
 
-export const TuyaDeviceTypes = ['light', 'fan', 'dimmer', 'switch', 'outlet', 'scene'] as const;
+export const TuyaDeviceTypes = ['climate', 'light', 'fan', 'dimmer', 'switch', 'outlet', 'scene'] as const;
 export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
 export type HomeAssitantDeviceType = 'light' | 'fan' | 'dimmer' | 'switch' | 'outlet' | 'scene';
 
@@ -41,7 +42,14 @@ type DeviceQueryPayload<State extends TuyaDeviceState = TuyaDeviceState> = {
   header: TuyaHeader
 }
 
-export type TuyaApiMethod = 'turnOnOff' | 'brightnessSet' | 'windSpeedSet' | 'colorSet' | 'colorTemperatureSet'
+export type TuyaApiMethod =
+    'turnOnOff' |
+    'brightnessSet' |
+    'windSpeedSet' |
+    'colorSet' |
+    'colorTemperatureSet' |
+    'modeSet' |
+    'temperatureSet'
 export type TuyaApiPayload<Method extends TuyaApiMethod> = Method extends 'turnOnOff'
   ? { value: 0 | 1 }
   : Method extends 'brightnessSet'
@@ -52,7 +60,11 @@ export type TuyaApiPayload<Method extends TuyaApiMethod> = Method extends 'turnO
         ? { color: { hue: number, saturation: number, brightness: number } }
         : Method extends 'colorTemperatureSet'
           ? { value: number }
-          : never
+          : Method extends 'modeSet'
+            ? { value: ClimateMode }
+            : Method extends 'temperatureSet'
+              ? { value: number }
+              : never
 
 class Session {
   private _areaBaseUrl!: string;

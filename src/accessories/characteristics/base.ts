@@ -59,7 +59,7 @@ export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = Ba
 
   public abstract getRemoteValue(callback: CharacteristicGetCallback): void;
 
-  public abstract setRemoteValue(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void;
+  public setRemoteValue?(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void;
 
   public abstract updateValue(data?: Accessory['deviceConfig']['data'], callback?: CharacteristicGetCallback): void;
 
@@ -69,8 +69,10 @@ export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = Ba
     const char = this.setProps(this.accessory.service?.getCharacteristic(this.homekitCharacteristic));
 
     if (char) {
-      char.on('get', this.getRemoteValue.bind(this))
-        .on('set', this.setRemoteValue.bind(this));
+      char.on('get', this.getRemoteValue.bind(this));
+      if(this.setRemoteValue){
+        char.on('set', this.setRemoteValue.bind(this));
+      }
     }
 
     this.accessory.addUpdateCallback(this.homekitCharacteristic, this.updateValue.bind(this));
