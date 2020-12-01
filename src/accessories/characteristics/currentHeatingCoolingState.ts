@@ -1,5 +1,5 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {CharacteristicGetCallback} from 'homebridge';
+import {Characteristic, CharacteristicGetCallback} from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
 import {BaseAccessory} from '../BaseAccessory';
 import {ClimateMode} from '../ClimateAccessory';
@@ -15,8 +15,19 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
     return accessory.platform.Characteristic.CurrentHeatingCoolingState;
   }
 
-  public static isSupportedByAccessory(accessory): boolean {
-    return accessory.deviceConfig.data.mode !== undefined;
+  public static isSupportedByAccessory(): boolean {
+    return true;
+  }
+
+  public setProps(char?: Characteristic): Characteristic | undefined {
+    const data = this.accessory.deviceConfig.data as unknown as CurrentHeaterCoolerStateCharacteristicData;
+    const validValues = [this.CurrentHeatingCoolingState.OFF, this.CurrentHeatingCoolingState.HEAT];
+    if(data.mode) {
+      validValues.push(this.CurrentHeatingCoolingState.COOL);
+    }
+    return char?.setProps({
+      validValues,
+    });
   }
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
@@ -42,10 +53,8 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
       'wind': this.CurrentHeatingCoolingState.COOL,
       'hot': this.CurrentHeatingCoolingState.HEAT,
       'cold': this.CurrentHeatingCoolingState.COOL,
-    }[data?.mode || 'auto'];
-    if (mode) {
-      this.accessory.setCharacteristic(this.homekitCharacteristic, mode, !callback);
-      callback && callback(null, mode);
-    }
+    }[data?.mode || 'hot'];
+    this.accessory.setCharacteristic(this.homekitCharacteristic, mode, !callback);
+    callback && callback(null, mode);
   }
 }

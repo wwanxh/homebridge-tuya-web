@@ -87,13 +87,13 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         if (this.pollingInterval) {
           //Tuya will probably still complain if we fetch a new request on the exact second.
           const pollingInterval = Math.max(this.pollingInterval, TUYA_DISCOVERY_TIMEOUT + 5);
-            this.log?.info('Enable cloud polling with interval %ss', pollingInterval);
-            // Set interval for refreshing device states
-            setInterval(() => {
-              this.refreshDeviceStates().catch((error) => {
-                this.log.error(error.message);
-              });
-            }, pollingInterval * 1000);
+          this.log?.info('Enable cloud polling with interval %ss', pollingInterval);
+          // Set interval for refreshing device states
+          setInterval(() => {
+            this.refreshDeviceStates().catch((error) => {
+              this.log.error(error.message);
+            });
+          }, pollingInterval * 1000);
         }
       } catch (e) {
         if(e instanceof AuthenticationError) {
@@ -142,7 +142,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
       const uuid = this.api.hap.uuid.generate(device.id);
       const homebridgeAccessory = this.accessories.get(uuid);
       if (homebridgeAccessory) {
-                homebridgeAccessory.controller?.updateAccessory(device);
+        homebridgeAccessory.controller?.updateAccessory(device);
       } else if (!this.failedToInitAccessories.get(device.dev_type)?.includes(uuid)) {
         this.log.error('Could not find Homebridge device with UUID (%s) for Tuya device (%s)', uuid, device.name);
       }
@@ -206,11 +206,15 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     let devices = await this.tuyaWebApi.discoverDevices() || [];
 
     // Is device type overruled in config defaults?
-    const parsedDefaults = this.parseDefaultsForDevices(devices);
-    for (const defaults of parsedDefaults) {
-      defaults.device.dev_type = defaults.device_type;
-      this.log.info('Device type for "%s" is overruled in config to: "%s"', defaults.device.name, defaults.device.dev_type);
-    }
+    devices = this.applyConfigOverwrites(devices);
+    devices.forEach(device => {
+      if(device.config?.old_dev_type && device.config.old_dev_type.toLowerCase() !== device.dev_type.toLowerCase()) {
+        this.log.info(
+          'Device type for "%s" is overruled in config from %s to: "%s"',
+          device.name, device.config.old_dev_type, device.dev_type,
+        );
+      }
+    });
 
     devices = this.filterDeviceList(devices);
 
@@ -238,48 +242,51 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
      * @param devices
      * @private
      */
-  private parseDefaultsForDevices(devices: TuyaDevice[]): Array<TuyaDeviceDefaults & { device: TuyaDevice }> {
-    const defaults = this.config.defaults;
+  private applyConfigOverwrites(devices: TuyaDevice[]): TuyaDevice[] {
+    const configOverwriteData = this.config.defaults;
 
-    if (!defaults) {
-      return [];
+    if (!configOverwriteData) {
+      return devices;
     }
 
-    const parsedDefaults: Array<TuyaDeviceDefaults & { device: TuyaDevice }> = [];
-    for (const configuredDefault of defaults as Partial<TuyaDeviceDefaults>[]) {
-      if(!configuredDefault.id) {
+    for (const configOverwrite of configOverwriteData as Array<Partial<TuyaDeviceDefaults> & {old_dev_type: TuyaDeviceType}>) {
+      if(!configOverwrite.id) {
         this.log.warn(
-          'Missing required `id` property on device type overwrite, received:\r\n%s',
-          JSON.stringify(configuredDefault, undefined, 2));
+          'Missing required `id` property on device configuration, received:\r\n%s',
+          JSON.stringify(configOverwrite, undefined, 2));
         continue;
       }
 
-      if(!configuredDefault.device_type) {
+      if(!configOverwrite.device_type) {
         this.log.warn(
-          'Missing required `device_type` property on device type overwrite, received:\r\n%s',
-          JSON.stringify(configuredDefault, undefined, 2));
+          'Missing required `device_type` property on device configuration, received:\r\n%s',
+          JSON.stringify(configOverwrite, undefined, 2));
         continue;
       }
 
-      configuredDefault.device_type = configuredDefault.device_type.toLowerCase() as TuyaDeviceType;
+      configOverwrite.device_type = configOverwrite.device_type.toLowerCase() as TuyaDeviceType;
 
-      const device = devices.find(device => device.id === configuredDefault.id || device.name === configuredDefault.id);
+      const device = devices.find(device => device.id === configOverwrite.id || device.name === configOverwrite.id);
       if (!device) {
-        this.log.warn('Tried adding default for device: "%s" which is not a valid device-id or device-name.', configuredDefault.id);
+        this.log.warn('Tried overwriting device config for: "%s" which is not a valid device-id or device-name.', configOverwrite.id);
         continue;
       }
 
-      if (!TuyaDeviceTypes.includes(configuredDefault.device_type!)) {
+      if (!TuyaDeviceTypes.includes(configOverwrite.device_type!)) {
         this.log.warn(
-          'Added defaults for device: "%s" - device-type "%s" is not a valid device-type.', device.name, configuredDefault.device_type,
+          'Tried overwriting device config for: "%s" - device-type "%s" is not a valid device-type.', device.name, configOverwrite.device_type,
         );
         continue;
       }
 
-      parsedDefaults.push({...(configuredDefault as TuyaDeviceDefaults), device});
+      configOverwrite.old_dev_type = device.dev_type;
+      device.dev_type = configOverwrite.device_type;
+      delete configOverwrite.device_type;
+      delete configOverwrite.id;
+      device.config = configOverwrite;
     }
 
-    return parsedDefaults;
+    return devices;
   }
 
   /**

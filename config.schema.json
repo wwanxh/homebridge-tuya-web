@@ -71,8 +71,8 @@
         }
       },
       "defaults": {
-        "title": "Overwrite devices",
-        "description": "Device types can be overwritten if devices are wrongfully exposed i.e. an outlet that is exposed as a switch.",
+        "title": "Device Settings",
+        "description": "Here you can configure settings for each of your devices.",
         "type": "array",
         "items": {
           "title": "Overwrite",
@@ -125,9 +125,31 @@
                   "enum": [
                     "switch"
                   ]
+                },
+                {
+                  "title": "Thermostat",
+                  "enum": [
+                    "climate"
+                  ]
                 }
               ],
               "required": true
+            },
+            "min_temper": {
+              "title": "Minimal Temperature",
+              "type": "string",
+              "pattern": "^\\d+(?:\\.[05])?$",
+              "description": "The minimal temperature that you want to be able to set in HomeKit, this must be in half degree celsius intervals.",
+              "placeholder": "0.0",
+              "required": false
+            },
+            "max_temper": {
+              "title": "Maximal Temperature",
+              "type": "string",
+              "pattern": "^\\d+(?:\\.[05])?$",
+              "description": "The maximal temperature that you want to be able to set in HomeKit, this must be in half degree celsius intervals.",
+              "placeholder": "35.0",
+              "required": false
             }
           }
         }
@@ -176,6 +198,37 @@
     "options.platform",
     {
       "type": "fieldset",
+      "title": "Device Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "key": "defaults[].id"
+            },
+            {
+              "key": "defaults[].device_type"
+            },
+            {
+              "key": "defaults[].min_temper",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].max_temper",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
       "title": "Optional Settings",
       "expandable": true,
       "expanded": false,
@@ -189,18 +242,6 @@
       "expandable": true,
       "expanded": false,
       "items": [
-        {
-          "title": "Device overwrite",
-          "type": "array",
-          "items": [
-            {
-              "key": "defaults[].id"
-            },
-            {
-              "key": "defaults[].device_type"
-            }
-          ]
-        },
         {
           "title": "Hidden accessories",
           "type": "array",

@@ -14,18 +14,18 @@ export class CurrentTemperatureCharacteristic extends TuyaWebCharacteristic {
   }
 
   public static isSupportedByAccessory(accessory): boolean {
-    return accessory.deviceConfig.data.temperature !== undefined;
+    return accessory.deviceConfig.data.current_temperature;
   }
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory.getDeviceState<CurrentTemperatureCharacteristicData>().then((data) => {
-      this.debug('[GET] current_temp: %s - temp: %s', data?.current_temperature, data?.temperature);
+      this.debug('[GET] current_temp: %s', data?.current_temperature);
       this.updateValue(data, callback);
     }).catch(this.accessory.handleError('GET', callback));
   }
 
   updateValue(data: DeviceWithCurrentTemperatureCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {
-    const currentTemperature = data?.current_temperature || data?.temperature;
+    const currentTemperature = data?.current_temperature ? data?.current_temperature / 10 : undefined;
     if (currentTemperature) {
       this.accessory.setCharacteristic(this.homekitCharacteristic, currentTemperature, !callback);
       callback && callback(null, currentTemperature);

@@ -15,6 +15,7 @@ import {PLUGIN_NAME, TUYA_DEVICE_TIMEOUT} from '../settings';
 import {inspect} from 'util';
 import {DebouncedPromise} from '../helpers/DebouncedPromise';
 import {RatelimitError} from '../errors';
+import {TuyaDeviceDefaults} from '../config';
 
 export type CharacteristicConstructor = WithUUID<{
   new(): Characteristic;
@@ -83,6 +84,8 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
 
     this.log.debug('[%s] deviceConfig: %s', this.deviceConfig.name, inspect(this.deviceConfig));
 
+    this.validateConfigOverwrites(this.deviceConfig.config).forEach(error => this.error(error));
+
     switch (categoryType) {
       case Categories.LIGHTBULB:
         this.serviceType = platform.Service.Lightbulb;
@@ -139,6 +142,15 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
     }
 
     this.homebridgeAccessory.on('identify', this.onIdentify.bind(this));
+  }
+
+  /**
+   * Should validate and correct the supplied overwrite configuration for this device.
+   * @param config
+   * @returns A list of all errors in this config.
+   */
+  public validateConfigOverwrites(config?: Partial<TuyaDeviceDefaults>): string[] {
+    return [];
   }
 
   public get name(): string {
@@ -233,7 +245,6 @@ export abstract class BaseAccessory<DeviceConfig extends TuyaDevice = TuyaDevice
 
     setCharacteristic(this.platform.Characteristic.SerialNumber, this.deviceConfig.id);
     setCharacteristic(this.platform.Characteristic.Manufacturer, PLUGIN_NAME);
-    setCharacteristic(this.platform.Characteristic.Model, this.categoryType);
 
     // Update device specific state
     this.updateState(device.data);

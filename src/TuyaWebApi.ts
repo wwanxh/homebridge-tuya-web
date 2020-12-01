@@ -3,6 +3,7 @@ import axios, {AxiosRequestConfig} from 'axios';
 import * as querystring from 'querystring';
 import {AuthenticationError, RatelimitError} from './errors';
 import {ClimateMode} from './accessories/ClimateAccessory';
+import {TuyaDeviceDefaults} from './config';
 
 export const TuyaDeviceTypes = ['climate', 'light', 'fan', 'dimmer', 'switch', 'outlet', 'scene'] as const;
 export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
@@ -21,6 +22,7 @@ export type TuyaDevice<State extends TuyaDeviceState = TuyaDeviceState> = {
   id: string,
   dev_type: TuyaDeviceType,
   ha_type: HomeAssitantDeviceType
+  config?: Partial<TuyaDeviceDefaults> & {old_dev_type: TuyaDeviceType}
 }
 
 type TuyaHeader = {
@@ -234,71 +236,71 @@ export class TuyaWebApi {
 
   public async getOrRefreshToken(): Promise<Session | undefined> {
     if (!this.session?.hasToken()) {
-            this.log?.debug('Requesting new token');
-            // No token, lets get a token from the Tuya Web API
-            if (!this.username) {
-              throw new AuthenticationError('No username configured');
-            }
-            if (!this.password) {
-              throw new AuthenticationError('No password configured');
-            }
-            if (!this.countryCode) {
-              throw new AuthenticationError('No country code configured');
-            }
+      this.log?.debug('Requesting new token');
+      // No token, lets get a token from the Tuya Web API
+      if (!this.username) {
+        throw new AuthenticationError('No username configured');
+      }
+      if (!this.password) {
+        throw new AuthenticationError('No password configured');
+      }
+      if (!this.countryCode) {
+        throw new AuthenticationError('No country code configured');
+      }
 
-            const form = {
-              userName: this.username,
-              password: this.password,
-              countryCode: this.countryCode,
-              bizType: this.tuyaPlatform,
-              from: 'tuya',
-            };
+      const form = {
+        userName: this.username,
+        password: this.password,
+        countryCode: this.countryCode,
+        bizType: this.tuyaPlatform,
+        from: 'tuya',
+      };
 
-            const formData = querystring.stringify(form);
-            const contentLength = formData.length;
+      const formData = querystring.stringify(form);
+      const contentLength = formData.length;
 
-            const {data} = await
-            axios({
-              headers: {
-                'Content-Length': contentLength,
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              url: '/homeassistant/auth.do',
-              baseURL: this.authBaseUrl,
-              data: formData,
-              method: 'POST',
-            });
-            if (data.responseStatus === 'error') {
-              throw new AuthenticationError(data.errorMsg);
-            } else {
-              this.session = new Session(
-                data.access_token,
-                data.refresh_token,
-                data.expires_in,
-                data.access_token.substr(0, 2),
-              );
+      const {data} = await
+      axios({
+        headers: {
+          'Content-Length': contentLength,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        url: '/homeassistant/auth.do',
+        baseURL: this.authBaseUrl,
+        data: formData,
+        method: 'POST',
+      });
+      if (data.responseStatus === 'error') {
+        throw new AuthenticationError(data.errorMsg);
+      } else {
+        this.session = new Session(
+          data.access_token,
+          data.refresh_token,
+          data.expires_in,
+          data.access_token.substr(0, 2),
+        );
 
-              return this.session;
-            }
+        return this.session;
+      }
 
     } else {
-            this.log?.debug('Refreshing token');
-            if (this.session.isTokenExpired()) {
-              // Refresh token
-              const {data} = await this.sendRequest(
-                '/homeassistant/access.do?grant_type=refresh_token&refresh_token=' + this.session.refreshToken,
-                {},
-                'GET',
-              );
+      this.log?.debug('Refreshing token');
+      if (this.session.isTokenExpired()) {
+        // Refresh token
+        const {data} = await this.sendRequest(
+          '/homeassistant/access.do?grant_type=refresh_token&refresh_token=' + this.session.refreshToken,
+          {},
+          'GET',
+        );
 
-              // Received token
-              this.session.resetToken(
-                data.access_token,
-                data.refresh_token,
-                data.expires_in,
-              );
-              return this.session;
-            }
+        // Received token
+        this.session.resetToken(
+          data.access_token,
+          data.refresh_token,
+          data.expires_in,
+        );
+        return this.session;
+      }
     }
   }
 
@@ -310,14 +312,14 @@ export class TuyaWebApi {
   public async sendRequest<T = Record<string, unknown>>
   (url: AxiosRequestConfig['url'], data: AxiosRequestConfig['data'], method: AxiosRequestConfig['method'])
     : Promise<{ data: T & { header: TuyaHeader } }> {
-        this.log?.debug('Sending HTTP %s request to %s - Header: %s.', method, url, JSON.stringify(data.header));
-        const response = await axios({
-          baseURL: this.session?.areaBaseUrl,
-          url,
-          data,
-          method,
-        });
+    this.log?.debug('Sending HTTP %s request to %s - Header: %s.', method, url, JSON.stringify(data.header));
+    const response = await axios({
+      baseURL: this.session?.areaBaseUrl,
+      url,
+      data,
+      method,
+    });
 
-        return {data: response.data};
+    return {data: response.data};
   }
 }

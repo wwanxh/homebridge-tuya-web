@@ -1,7 +1,12 @@
 import {TuyaDeviceType, TuyaPlatform} from './TuyaWebApi';
 import {PlatformConfig} from 'homebridge';
 
-export type TuyaDeviceDefaults = { id: string, device_type: TuyaDeviceType }
+export type TuyaDeviceDefaults = {
+  id: string,
+  device_type: TuyaDeviceType,
+  min_temper: string | number,
+  max_temper: string | number,
+}
 
 type Config = {
   options?: {

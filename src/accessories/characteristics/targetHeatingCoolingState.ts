@@ -1,5 +1,5 @@
 import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
-import {CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
+import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
 import {BaseAccessory} from '../BaseAccessory';
 import {ClimateMode} from '../ClimateAccessory';
@@ -15,8 +15,23 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
     return accessory.platform.Characteristic.TargetHeatingCoolingState;
   }
 
-  public static isSupportedByAccessory(accessory): boolean {
-    return accessory.deviceConfig.data.mode !== undefined;
+  public static isSupportedByAccessory(): boolean {
+    return true;
+  }
+
+  public setProps(char?: Characteristic): Characteristic | undefined {
+    const validValues = [this.TargetHeatingCoolingState.OFF, this.TargetHeatingCoolingState. AUTO];
+    if(this.canSpecifyTarget) {
+      validValues.push(this.TargetHeatingCoolingState.COOL, this.TargetHeatingCoolingState.HEAT);
+    }
+    return char?.setProps({
+      validValues,
+    });
+  }
+
+  public get canSpecifyTarget(): boolean {
+    const data = this.accessory.deviceConfig.data as unknown as TargetHeaterCoolerStateCharacteristicData;
+    return !!data.mode;
   }
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
@@ -38,6 +53,7 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
       }).catch(this.accessory.handleError('SET', callback));
       return;
     }
+
     const map: { [key: number]: ClimateMode } = {
       [this.TargetHeatingCoolingState.AUTO]: 'auto',
       [this.TargetHeatingCoolingState.HEAT]: 'hot',
@@ -45,11 +61,15 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
     };
 
     const value = map[homekitValue as string];
-    this.accessory.setDeviceState('turnOnOff', {value: 1}, {mode: value}).then(() => {
-      this.accessory.setDeviceState('modeSet', {value}, {mode: value}).then(() => {
-        this.debug('[SET] %s %s', homekitValue, value);
+    this.accessory.setDeviceState('turnOnOff', {value: 1}, {state: true}).then(() => {
+      if(this.canSpecifyTarget) {
+        this.accessory.setDeviceState('modeSet', {value}, {mode: value}).then(() => {
+          this.debug('[SET] %s %s', homekitValue, value);
+          callback();
+        }).catch(this.accessory.handleError('SET', callback));
+      } else {
         callback();
-      }).catch(this.accessory.handleError('SET', callback));
+      }
     }).catch(this.accessory.handleError('SET', callback));
   }
 
