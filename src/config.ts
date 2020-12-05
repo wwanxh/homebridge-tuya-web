@@ -6,6 +6,7 @@ export type TuyaDeviceDefaults = {
   device_type: TuyaDeviceType,
   min_temper: string | number,
   max_temper: string | number,
+  temperature_factor: string | number,
 }
 
 type Config = {

@@ -7,6 +7,7 @@ import {
 } from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
 import {BaseAccessory} from '../BaseAccessory';
+import {ClimateAccessory} from '../ClimateAccessory';
 
 export type TargetTemperatureCharacteristicData = {
   temperature: number,
@@ -29,7 +30,7 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
 
     const data = this.accessory.deviceConfig.data as unknown as TargetTemperatureCharacteristicData;
     if(data.min_temper) {
-      return data.min_temper / 10;
+      return data.min_temper * (this.accessory as ClimateAccessory).temperatureFactor;
     }
 
     return 0;
@@ -42,7 +43,7 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
 
     const data = this.accessory.deviceConfig.data as unknown as TargetTemperatureCharacteristicData;
     if(data.max_temper) {
-      return data.max_temper / 10;
+      return data.max_temper * (this.accessory as ClimateAccessory).temperatureFactor;
     }
 
     return 100;
@@ -76,7 +77,7 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
   }
 
   updateValue(data: DeviceWithCurrentTemperatureCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {
-    const temperature = data?.temperature ? data?.temperature / 10 : undefined;
+    const temperature = data?.temperature ? data?.temperature * (this.accessory as ClimateAccessory).temperatureFactor : undefined;
     if (temperature) {
       this.accessory.setCharacteristic(this.homekitCharacteristic, temperature, !callback);
       callback && callback(null, temperature);

@@ -2,6 +2,7 @@ import {TuyaDevice, TuyaDeviceState} from '../../TuyaWebApi';
 import {CharacteristicGetCallback} from 'homebridge';
 import {TuyaWebCharacteristic} from './base';
 import {BaseAccessory} from '../BaseAccessory';
+import {ClimateAccessory} from '../ClimateAccessory';
 
 export type CurrentTemperatureCharacteristicData = { current_temperature?: number, temperature: string }
 type DeviceWithCurrentTemperatureCharacteristic = TuyaDevice<TuyaDeviceState & CurrentTemperatureCharacteristicData>
@@ -25,7 +26,9 @@ export class CurrentTemperatureCharacteristic extends TuyaWebCharacteristic {
   }
 
   updateValue(data: DeviceWithCurrentTemperatureCharacteristic['data'] | undefined, callback?: CharacteristicGetCallback): void {
-    const currentTemperature = data?.current_temperature ? data?.current_temperature / 10 : undefined;
+    const currentTemperature = data?.current_temperature ?
+      data?.current_temperature * (this.accessory as ClimateAccessory).temperatureFactor :
+      undefined;
     if (currentTemperature) {
       this.accessory.setCharacteristic(this.homekitCharacteristic, currentTemperature, !callback);
       callback && callback(null, currentTemperature);

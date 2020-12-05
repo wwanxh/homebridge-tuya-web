@@ -104,7 +104,25 @@ The `defaults` has these properties:
 - `id` The name or id for the device that is registered in the Android/iOS App. When matching on ID please provide the `Tuya ID` as shown during Homebridge boot.
 - `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`.
 
-Note: After overriding the type of a device, it might appear duplicated in both HomeBridge (Accessories Tab) and the Home App. To solve this issue, go to the Homebridge settings (top right corner) and remove the device using the `Remove Single Cached Accessory` option.
+> Note: After overriding the type of a device, it might appear duplicated in both HomeBridge (Accessories Tab) and the Home App. To solve this issue, go to the Homebridge settings (top right corner) and remove the device using the `Remove Single Cached Accessory` option.
+
+## Configure Devices
+
+Some devices allow for extra configuration.  
+The easiest option is to do this through [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x#homebridge-config-ui-x).  
+In the plugin settings, go to "Device Settings" and click on "Add Device Settings".  
+Add the device id (or name) and select the device type.  
+If the given device type allows overwriting settings, the options will appear below.
+
+### Thermostat/Climate
+These devices can device a minimum- and maximum temperature as well as a temperature factor.
+
+The minimum and maximum values must be entered as degrees celsius with half degree increments; i.e. `-16`, `5`, `23`, `32.5`.  
+This will influence the minimum and maximum temperature that you will be able to set the thermostat at in HomeKit.
+
+The temperature factor can be used to influence the shown temperature. If HomeKit is showing an extremely high temperature, please try setting this value to `0.1`.
+This will change the shown value from i.e. `220` to `220 * 0.1 = 22`.
+The value entered here must be a positive decimal value i.e. `0.1`, `1`, `2.5`.
 
 ## Hiding devices
 
@@ -190,12 +208,6 @@ The Web API also supports these devices, but are not implemented yet in the plug
   - If they are not - don't open an issue. Ask [Tuya support](mailto:support@tuya.com) to support your device in their 
     `/homeassistant` API
 - Remove the updated script, so your credentials won't leak
-
-## TODO
-
-These features are on my wishlist and need to be implemented:
-
-- Implement devices that are not supported yet.
 
 ## Unit tests
 

@@ -36,6 +36,14 @@ export class ClimateAccessory extends BaseAccessory<ClimateAccessoryConfig> {
     new TargetHeatingCoolingStateCharacteristic(this as BaseAccessory);
   }
 
+  public get temperatureFactor(): number {
+    if(this.deviceConfig.config?.temperature_factor) {
+      return Number(this.deviceConfig.config.temperature_factor);
+    }
+
+    return 1;
+  }
+
   validateConfigOverwrites(config: TuyaDeviceDefaults): string[] {
     const errors = super.validateConfigOverwrites(config);
     if(config?.min_temper) {
@@ -55,6 +63,15 @@ export class ClimateAccessory extends BaseAccessory<ClimateAccessoryConfig> {
       } else {
         //Ensure that the min temp is a multiple of 0.5;
         config.max_temper = Math.round(maxTemp * 2) / 2;
+      }
+    }
+
+    if(config?.temperature_factor) {
+      const tempFactor = Number(config.temperature_factor);
+      if(!tempFactor) {
+        errors.push('Wrong value configured for `temperature_factor`, should be a number');
+      } else {
+        config.temperature_factor = tempFactor;
       }
     }
 

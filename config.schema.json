@@ -138,7 +138,7 @@
             "min_temper": {
               "title": "Minimal Temperature",
               "type": "string",
-              "pattern": "^\\d+(?:\\.[05])?$",
+              "pattern": "^-?\\d+(?:\\.[05])?$",
               "description": "The minimal temperature that you want to be able to set in HomeKit, this must be in half degree celsius intervals.",
               "placeholder": "0.0",
               "required": false
@@ -146,9 +146,17 @@
             "max_temper": {
               "title": "Maximal Temperature",
               "type": "string",
-              "pattern": "^\\d+(?:\\.[05])?$",
+              "pattern": "^-?\\d+(?:\\.[05])?$",
               "description": "The maximal temperature that you want to be able to set in HomeKit, this must be in half degree celsius intervals.",
               "placeholder": "35.0",
+              "required": false
+            },
+            "temperature_factor": {
+              "title": "Temperature Factor",
+              "type": "string",
+              "pattern": "^\\d+(?:\\.\\d+)?$",
+              "description": "Alters the reported temperatures in HomeKit. I.e. if HomeKit reports 250 while the temperature is 250, enter `0.1` here to report the correct temperature. Defaults to 1, no change.",
+              "placeholder": "I.e. 0.1",
               "required": false
             }
           }
@@ -219,6 +227,12 @@
             },
             {
               "key": "defaults[].max_temper",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].temperature_factor",
               "condition": {
                 "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
               }
