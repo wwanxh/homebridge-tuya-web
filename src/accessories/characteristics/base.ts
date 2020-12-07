@@ -1,13 +1,29 @@
-import {BaseAccessory, CharacteristicConstructor} from '../BaseAccessory';
-import {LogLevel} from 'homebridge';
-import {Characteristic, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue} from 'homebridge';
+import { BaseAccessory, CharacteristicConstructor } from "../BaseAccessory";
+import { LogLevel } from "homebridge";
+import {
+  Characteristic,
+  CharacteristicGetCallback,
+  CharacteristicSetCallback,
+  CharacteristicValue,
+} from "homebridge";
+import { TuyaDevice } from "../../TuyaWebApi";
 
-export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = BaseAccessory> {
+export abstract class TuyaWebCharacteristic<
+  DeviceConfig extends TuyaDevice = TuyaDevice,
+  Accessory extends BaseAccessory<DeviceConfig> = BaseAccessory<DeviceConfig>
+> {
   public static Title: string;
-  public static HomekitCharacteristic: (accessory: BaseAccessory) => CharacteristicConstructor;
+  public static HomekitCharacteristic: (
+    accessory: BaseAccessory
+  ) => CharacteristicConstructor;
 
-  public static isSupportedByAccessory<Accessory extends BaseAccessory>(accessory: Accessory): boolean {
-    accessory.log.error('Method `isSupportedByAccessory must be overwritten by Characteristic, missing for %s', this.Title);
+  public static isSupportedByAccessory<Accessory extends BaseAccessory>(
+    accessory: Accessory
+  ): boolean {
+    accessory.log.error(
+      "Method `isSupportedByAccessory must be overwritten by Characteristic, missing for %s",
+      this.Title
+    );
     return false;
   }
 
@@ -38,7 +54,13 @@ export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = Ba
   }
 
   private log(logLevel: LogLevel, message: string, ...args: unknown[]): void {
-    this.accessory.log.log(logLevel, `[%s] %s - ${message}`, this.accessory.name, this.title, ...args);
+    this.accessory.log.log(
+      logLevel,
+      `[%s] %s - ${message}`,
+      this.accessory.name,
+      this.title,
+      ...args
+    );
   }
 
   protected debug(message: string, ...args: unknown[]): void {
@@ -59,27 +81,39 @@ export abstract class TuyaWebCharacteristic<Accessory extends BaseAccessory = Ba
 
   public abstract getRemoteValue(callback: CharacteristicGetCallback): void;
 
-  public setRemoteValue?(homekitValue: CharacteristicValue, callback: CharacteristicSetCallback): void;
+  public setRemoteValue?(
+    homekitValue: CharacteristicValue,
+    callback: CharacteristicSetCallback
+  ): void;
 
-  public abstract updateValue(data?: Accessory['deviceConfig']['data'], callback?: CharacteristicGetCallback): void;
-
+  public abstract updateValue(
+    data?: Accessory["deviceConfig"]["data"],
+    callback?: CharacteristicGetCallback
+  ): void;
 
   private enable(): void {
-    this.debug('Enabled');
-    const char = this.setProps(this.accessory.service?.getCharacteristic(this.homekitCharacteristic));
+    this.debug("Enabled");
+    const char = this.setProps(
+      this.accessory.service?.getCharacteristic(this.homekitCharacteristic)
+    );
 
     if (char) {
-      char.on('get', this.getRemoteValue.bind(this));
-      if(this.setRemoteValue){
-        char.on('set', this.setRemoteValue.bind(this));
+      char.on("get", this.getRemoteValue.bind(this));
+      if (this.setRemoteValue) {
+        char.on("set", this.setRemoteValue.bind(this));
       }
     }
 
-    this.accessory.addUpdateCallback(this.homekitCharacteristic, this.updateValue.bind(this));
+    this.accessory.addUpdateCallback(
+      this.homekitCharacteristic,
+      this.updateValue.bind(this)
+    );
   }
 
   private disable(): void {
-    this.debug('Characteristic not supported');
-        this.accessory.service?.removeCharacteristic(new this.homekitCharacteristic);
+    this.debug("Characteristic not supported");
+    this.accessory.service?.removeCharacteristic(
+      new this.homekitCharacteristic()
+    );
   }
 }

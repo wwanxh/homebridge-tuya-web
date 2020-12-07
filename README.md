@@ -40,6 +40,7 @@ npm i -g @milo526/homebridge-tuya-web
 ```
 
 ## Support
+
 Please notice that there is no official support for this plugin, for help please [open an issue](https://github.com/milo526/homebridge-tuya-web/issues/new/choose) or see:
 
 <span align="center">
@@ -48,20 +49,18 @@ Please notice that there is no official support for this plugin, for help please
 
 </span>
 
-
 # Configuration
 
 ```json
 {
   "platform": "TuyaWebPlatform",
   "name": "TuyaWebPlatform",
-  "options":
-    {
-      "username": "xxxx@gmail.com",
-      "password": "xxxxxxxxxx",
-      "countryCode": "xx",
-      "platform": "tuya"
-    }
+  "options": {
+    "username": "xxxx@gmail.com",
+    "password": "xxxxxxxxxx",
+    "countryCode": "xx",
+    "platform": "tuya"
+  }
 }
 ```
 
@@ -115,6 +114,7 @@ Add the device id (or name) and select the device type.
 If the given device type allows overwriting settings, the options will appear below.
 
 ### Thermostat/Climate
+
 These devices can device a minimum- and maximum temperature as well as a temperature factor.
 
 The minimum and maximum values must be entered as degrees celsius with half degree increments; i.e. `-16`, `5`, `23`, `32.5`.  
@@ -149,6 +149,7 @@ To prevent an overload of scenes clogging up your HomeKit devices, scenes are by
 ### Add all scenes to HomeKit
 
 You can add all your tuya scenes to HomeKit by setting the `scenes` key to `true`.
+
 ```json
 {
   "platform": "TuyaWebPlatform",
@@ -159,11 +160,12 @@ You can add all your tuya scenes to HomeKit by setting the `scenes` key to `true
     },
   "scenes": true
 }
-``` 
+```
 
 ### Add specific scenes to HomeKit
 
 To add specific scenes to HomeKit you can set the `scenes` key to true and set `scenesWhitelist` to an array in which you define either the names or ids of the scenes that you'd wish to expose.
+
 ```json
 {
   "platform": "TuyaWebPlatform",
@@ -205,7 +207,7 @@ The Web API also supports these devices, but are not implemented yet in the plug
 - Set/update config inside and run it
 - Check if your devices are listed
   - If they are - open an issue and provide the output
-  - If they are not - don't open an issue. Ask [Tuya support](mailto:support@tuya.com) to support your device in their 
+  - If they are not - don't open an issue. Ask [Tuya support](mailto:support@tuya.com) to support your device in their
     `/homeassistant` API
 - Remove the updated script, so your credentials won't leak
 

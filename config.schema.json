@@ -42,21 +42,15 @@
             "oneOf": [
               {
                 "title": "Tuya Smart",
-                "enum": [
-                  "tuya"
-                ]
+                "enum": ["tuya"]
               },
               {
                 "title": "Smart Life",
-                "enum": [
-                  "smart_life"
-                ]
+                "enum": ["smart_life"]
               },
               {
                 "title": "Jinvoo Smart",
-                "enum": [
-                  "jinvoo_smart"
-                ]
+                "enum": ["jinvoo_smart"]
               }
             ],
             "required": true
@@ -92,45 +86,31 @@
               "oneOf": [
                 {
                   "title": "Dimmer",
-                  "enum": [
-                    "dimmer"
-                  ]
+                  "enum": ["dimmer"]
                 },
                 {
                   "title": "Fan",
-                  "enum": [
-                    "fan"
-                  ]
+                  "enum": ["fan"]
                 },
                 {
                   "title": "Light",
-                  "enum": [
-                    "light"
-                  ]
+                  "enum": ["light"]
                 },
                 {
                   "title": "Outlet",
-                  "enum": [
-                    "outlet"
-                  ]
+                  "enum": ["outlet"]
                 },
                 {
                   "title": "Scene",
-                  "enum": [
-                    "scene"
-                  ]
+                  "enum": ["scene"]
                 },
                 {
                   "title": "Switch",
-                  "enum": [
-                    "switch"
-                  ]
+                  "enum": ["switch"]
                 },
                 {
                   "title": "Thermostat",
-                  "enum": [
-                    "climate"
-                  ]
+                  "enum": ["climate"]
                 }
               ],
               "required": true
@@ -246,9 +226,7 @@
       "title": "Optional Settings",
       "expandable": true,
       "expanded": false,
-      "items": [
-        "options.pollingInterval"
-      ]
+      "items": ["options.pollingInterval"]
     },
     {
       "type": "fieldset",

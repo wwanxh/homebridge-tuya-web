@@ -1,5 +1,10 @@
 export class MapRange {
-  private constructor(private fromStart, private fromEnd, private toStart, private toEnd) {}
+  private constructor(
+    private fromStart,
+    private fromEnd,
+    private toStart,
+    private toEnd
+  ) {}
 
   static from(start, end): { to: (start: number, end: number) => MapRange } {
     return {
@@ -10,10 +15,18 @@ export class MapRange {
   }
 
   public map(input: number): number {
-    return (input - this.fromStart) * (this.toEnd - this.toStart) / (this.fromEnd - this.fromStart) + this.toStart;
+    return (
+      ((input - this.fromStart) * (this.toEnd - this.toStart)) /
+        (this.fromEnd - this.fromStart) +
+      this.toStart
+    );
   }
 
   public inverseMap(input: number): number {
-    return (input - this.toStart) * (this.fromEnd - this.fromStart) / (this.toEnd - this.toStart) + this.fromStart;
+    return (
+      ((input - this.toStart) * (this.fromEnd - this.fromStart)) /
+        (this.toEnd - this.toStart) +
+      this.fromStart
+    );
   }
 }

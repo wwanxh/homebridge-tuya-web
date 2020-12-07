@@ -1,25 +1,27 @@
-import {TuyaDevice} from '../TuyaWebApi';
+import { TuyaDevice } from "../TuyaWebApi";
 
 export class DeviceList {
-  private idNameMap: { [key: string]: string } = {}
+  private idNameMap: { [key: string]: string } = {};
 
   constructor(devices: TuyaDevice[]) {
-    devices.forEach(device => {
+    devices.forEach((device) => {
       this.idNameMap[device.id] = device.name;
     });
   }
 
   /**
- * Returns the device ID belonging to the supplied identifier
- * @param identifier
- */
+   * Returns the device ID belonging to the supplied identifier
+   * @param identifier
+   */
   public find(identifier: string): string | undefined {
     if (Object.keys(this.idNameMap).includes(identifier)) {
       return identifier;
     }
 
     if (Object.values(this.idNameMap).includes(identifier)) {
-      return Object.keys(this.idNameMap).find(key => this.idNameMap[key] === identifier);
+      return Object.keys(this.idNameMap).find(
+        (key) => this.idNameMap[key] === identifier
+      );
     }
 
     return undefined;
@@ -27,7 +29,7 @@ export class DeviceList {
 
   public nameForIdentifier(identifier: string): string | undefined {
     const id = this.find(identifier);
-    if(!id) {
+    if (!id) {
       return undefined;
     }
     return this.idNameMap[id];
