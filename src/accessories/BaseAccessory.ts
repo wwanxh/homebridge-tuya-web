@@ -23,6 +23,7 @@ import {
   TuyaDevice,
 } from "../api/response";
 import { Cache } from "../helpers/cache";
+import { TuyaDeviceDefaults } from "../config";
 
 export type CharacteristicConstructor = WithUUID<{
   new (): Characteristic;
@@ -200,9 +201,14 @@ export abstract class BaseAccessory {
 
   /**
    * Should validate and correct the supplied overwrite configuration for this device.
+   * @param config
    * @returns A list of all errors in this config.
    */
-  public validateConfigOverwrites(): string[] {
+  public validateConfigOverwrites(
+    // Must be determined for overwrites down the line.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    config?: Partial<TuyaDeviceDefaults>
+  ): string[] {
     return [];
   }
 
