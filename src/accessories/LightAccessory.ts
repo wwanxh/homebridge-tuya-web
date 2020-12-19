@@ -10,7 +10,6 @@ import {
   SaturationCharacteristic,
 } from "./characteristics";
 import { ColorAccessory } from "./ColorAccessory";
-import { TuyaDeviceDefaults } from "../config";
 import { TuyaDevice } from "../api/response";
 
 export class LightAccessory extends ColorAccessory {

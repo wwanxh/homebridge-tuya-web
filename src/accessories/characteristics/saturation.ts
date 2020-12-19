@@ -3,7 +3,7 @@ import {
   CharacteristicSetCallback,
   CharacteristicValue,
 } from "homebridge";
-import { COLOR_MODES, ColorModes } from "./index";
+import { COLOR_MODES } from "./index";
 import { TuyaWebCharacteristic } from "./base";
 import { ColorAccessory } from "../ColorAccessory";
 import { BaseAccessory } from "../BaseAccessory";

@@ -154,9 +154,7 @@
               "items": {
                 "title": "Feature",
                 "type": "string",
-                "enum": [
-                  "Brightness"
-                ]
+                "enum": ["Brightness"]
               }
             },
             "fan_characteristics": {
@@ -166,9 +164,7 @@
               "items": {
                 "title": "Feature",
                 "type": "string",
-                "enum": [
-                  "Speed"
-                ]
+                "enum": ["Speed"]
               }
             },
             "light_characteristics": {
@@ -178,11 +174,7 @@
               "items": {
                 "title": "Feature",
                 "type": "string",
-                "enum": [
-                  "Brightness",
-                  "Color",
-                  "Color Temperature"
-                ]
+                "enum": ["Brightness", "Color", "Color Temperature"]
               }
             }
           }

@@ -15,7 +15,6 @@ import { PLUGIN_NAME } from "../settings";
 import { inspect } from "util";
 import { DebouncedPromise } from "../helpers/DebouncedPromise";
 import { ErrorCallback, RatelimitError } from "../errors";
-import { TuyaDeviceDefaults } from "../config";
 import { GeneralCharacteristic } from "./characteristics";
 import {
   DeviceState,
@@ -201,12 +200,9 @@ export abstract class BaseAccessory {
 
   /**
    * Should validate and correct the supplied overwrite configuration for this device.
-   * @param config
    * @returns A list of all errors in this config.
    */
-  public validateConfigOverwrites(
-    config?: Partial<TuyaDeviceDefaults>
-  ): string[] {
+  public validateConfigOverwrites(): string[] {
     return [];
   }
 
