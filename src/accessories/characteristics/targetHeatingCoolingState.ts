@@ -1,4 +1,3 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   Characteristic,
   CharacteristicGetCallback,
@@ -7,15 +6,8 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { ClimateMode } from "../ClimateAccessory";
-import { ActiveCharacteristicData } from "./active";
-
-export type TargetHeaterCoolerStateCharacteristicData = {
-  mode?: ClimateMode;
-} & ActiveCharacteristicData;
-type DeviceWithTargetHeaterCoolerStateCharacteristic = TuyaDevice<
-  TuyaDeviceState & TargetHeaterCoolerStateCharacteristicData
->;
+import { ClimateMode } from "./index";
+import { DeviceState } from "../../api/response";
 
 export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.TargetHeatingCoolingState";
@@ -45,17 +37,20 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
   }
 
   public get canSpecifyTarget(): boolean {
-    const data = (this.accessory.deviceConfig
-      .data as unknown) as TargetHeaterCoolerStateCharacteristicData;
+    const data = this.accessory.deviceConfig.data;
     return !!data.mode;
   }
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<TargetHeaterCoolerStateCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
-        this.debug("[GET] mode: %s", data);
-        this.updateValue(data, callback);
+        const d = {
+          state: data.state,
+          mode: data.mode,
+        };
+        this.debug("[GET] %s", d);
+        this.updateValue(d, callback);
       })
       .catch(this.accessory.handleError("GET", callback));
   }
@@ -104,16 +99,14 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithTargetHeaterCoolerStateCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (String(data?.state).toLowerCase() === "false") {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         this.TargetHeatingCoolingState.OFF,
         !callback
       );
+      this.debug("[UPDATE] %s", "OFF");
       callback && callback(null, this.TargetHeatingCoolingState.OFF);
       return;
     }
@@ -124,13 +117,19 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
       hot: this.TargetHeatingCoolingState.HEAT,
       cold: this.TargetHeatingCoolingState.COOL,
     }[data?.mode || "auto"];
-    if (mode) {
-      this.accessory.setCharacteristic(
-        this.homekitCharacteristic,
-        mode,
-        !callback
-      );
-      callback && callback(null, mode);
-    }
+    this.debug(
+      "[UPDATE] %s",
+      mode === this.TargetHeatingCoolingState.HEAT
+        ? "HEAT"
+        : mode === this.TargetHeatingCoolingState.COOL
+        ? "COOL"
+        : "AUTO"
+    );
+    this.accessory.setCharacteristic(
+      this.homekitCharacteristic,
+      mode,
+      !callback
+    );
+    callback && callback(null, mode);
   }
 }

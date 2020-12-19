@@ -1,16 +1,7 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import { Characteristic, CharacteristicGetCallback } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { ClimateMode } from "../ClimateAccessory";
-import { ActiveCharacteristicData } from "./active";
-
-export type CurrentHeaterCoolerStateCharacteristicData = {
-  mode?: ClimateMode;
-} & ActiveCharacteristicData;
-type DeviceWithCurrentHeaterCoolerStateCharacteristic = TuyaDevice<
-  TuyaDeviceState & CurrentHeaterCoolerStateCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.CurrentHeatingCoolingState";
@@ -24,8 +15,7 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
   }
 
   public setProps(char?: Characteristic): Characteristic | undefined {
-    const data = (this.accessory.deviceConfig
-      .data as unknown) as CurrentHeaterCoolerStateCharacteristicData;
+    const data = this.accessory.deviceConfig.data;
     const validValues = [
       this.CurrentHeatingCoolingState.OFF,
       this.CurrentHeatingCoolingState.HEAT,
@@ -40,10 +30,14 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<CurrentHeaterCoolerStateCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
-        this.debug("[GET] mode: %s", data);
-        this.updateValue(data, callback);
+        const d = {
+          state: data.state,
+          mode: data.mode,
+        };
+        this.debug("[GET] %s", d);
+        this.updateValue(d, callback);
       })
       .catch(this.accessory.handleError("GET", callback));
   }
@@ -52,16 +46,14 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
     return this.accessory.platform.Characteristic.CurrentHeatingCoolingState;
   }
 
-  updateValue(
-    data: DeviceWithCurrentHeaterCoolerStateCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (String(data?.state).toLowerCase() === "false") {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         this.CurrentHeatingCoolingState.OFF,
         !callback
       );
+      this.debug("[UPDATE] %S", "OFF");
       callback && callback(null, this.CurrentHeatingCoolingState.OFF);
       return;
     }
@@ -72,6 +64,10 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
       hot: this.CurrentHeatingCoolingState.HEAT,
       cold: this.CurrentHeatingCoolingState.COOL,
     }[data?.mode || "hot"];
+    this.debug(
+      "[UPDATE] %s",
+      mode === this.CurrentHeatingCoolingState.HEAT ? "HEAT" : "COOL"
+    );
     this.accessory.setCharacteristic(
       this.homekitCharacteristic,
       mode,

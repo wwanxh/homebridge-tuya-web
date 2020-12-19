@@ -1,4 +1,4 @@
-import { TuyaDevice } from "../TuyaWebApi";
+import { TuyaDevice } from "../api/response";
 
 export class DeviceList {
   private idNameMap: { [key: string]: string } = {};

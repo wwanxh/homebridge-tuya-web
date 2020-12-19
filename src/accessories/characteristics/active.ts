@@ -1,4 +1,3 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   CharacteristicGetCallback,
   CharacteristicSetCallback,
@@ -6,11 +5,7 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-
-export type ActiveCharacteristicData = { state: boolean | "true" | "false" };
-type DeviceWithActiveCharacteristic = TuyaDevice<
-  TuyaDeviceState & ActiveCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class ActiveCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.Active";
@@ -25,7 +20,7 @@ export class ActiveCharacteristic extends TuyaWebCharacteristic {
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<ActiveCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
         this.debug("[GET] %s", data?.state);
         this.updateValue(data, callback);
@@ -49,10 +44,7 @@ export class ActiveCharacteristic extends TuyaWebCharacteristic {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithActiveCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (data?.state !== undefined) {
       const stateValue = String(data.state).toLowerCase() === "true";
       this.accessory.setCharacteristic(

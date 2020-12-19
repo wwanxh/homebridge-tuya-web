@@ -1,4 +1,3 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   CharacteristicGetCallback,
   CharacteristicSetCallback,
@@ -8,14 +7,7 @@ import { COLOR_MODES, ColorModes } from "./index";
 import { TuyaWebCharacteristic } from "./base";
 import { ColorAccessory } from "../ColorAccessory";
 import { BaseAccessory } from "../BaseAccessory";
-
-export type SaturationCharacteristicData = {
-  color: { saturation?: string };
-  color_mode: ColorModes;
-};
-type DeviceWithSaturationCharacteristic = TuyaDevice<
-  TuyaDeviceState & SaturationCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class SaturationCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
   public static Title = "Characteristic.Saturation";
@@ -33,7 +25,7 @@ export class SaturationCharacteristic extends TuyaWebCharacteristic<ColorAccesso
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<SaturationCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
         this.debug("[GET] %s", data?.color?.saturation);
         this.updateValue(data, callback);
@@ -57,10 +49,7 @@ export class SaturationCharacteristic extends TuyaWebCharacteristic<ColorAccesso
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithSaturationCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     let stateValue: number = SaturationCharacteristic.DEFAULT_VALUE;
     if (
       data?.color_mode !== undefined &&

@@ -1,12 +1,17 @@
-import { TuyaDeviceType, TuyaPlatform } from "./TuyaWebApi";
 import { PlatformConfig } from "homebridge";
+import { TuyaPlatform } from "./api/platform";
+import { TuyaDeviceType } from "./api/response";
 
 export type TuyaDeviceDefaults = {
   id: string;
   device_type: TuyaDeviceType;
   min_temper: string | number;
   max_temper: string | number;
-  temperature_factor: string | number;
+  current_temperature_factor: string | number;
+  target_temperature_factor: string | number;
+  dimmer_characteristics: "Brightness"[];
+  fan_characteristics: "Speed"[];
+  light_characteristics: ("Brightness" | "Color" | "Color Temperature")[];
 };
 
 type Config = {

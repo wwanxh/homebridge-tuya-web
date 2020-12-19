@@ -1,26 +1,43 @@
 import { BaseAccessory } from "./BaseAccessory";
-import { TuyaDevice, TuyaDeviceState } from "../TuyaWebApi";
 import { HomebridgeAccessory, TuyaWebPlatform } from "../platform";
 import { Categories } from "homebridge";
 import {
   ActiveCharacteristic,
-  OnCharacteristicData,
+  GeneralCharacteristic,
   RotationSpeedCharacteristic,
 } from "./characteristics";
+import { TuyaDevice } from "../api/response";
 
-type FanAccessoryConfig = TuyaDevice & {
-  data: TuyaDeviceState & OnCharacteristicData;
-};
-
-export class FanAccessory extends BaseAccessory<FanAccessoryConfig> {
+export class FanAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
-    homebridgeAccessory: HomebridgeAccessory<FanAccessoryConfig>,
-    deviceConfig: FanAccessoryConfig
+    homebridgeAccessory: HomebridgeAccessory,
+    deviceConfig: TuyaDevice
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.FAN);
+  }
 
-    new ActiveCharacteristic(this as BaseAccessory);
-    new RotationSpeedCharacteristic(this as BaseAccessory);
+  public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
+    return [ActiveCharacteristic, RotationSpeedCharacteristic];
+  }
+
+  public get requiredCharacteristics(): GeneralCharacteristic[] {
+    return [ActiveCharacteristic];
+  }
+
+  public get deviceSupportedCharacteristics(): GeneralCharacteristic[] {
+    // Get supported characteristics from configuration
+    if (this.deviceConfig.config) {
+      const supportedCharacteristics: GeneralCharacteristic[] = [];
+      if (
+        (this.deviceConfig.config?.fan_characteristics || []).includes("Speed")
+      ) {
+        supportedCharacteristics.push(RotationSpeedCharacteristic);
+      }
+
+      return supportedCharacteristics;
+    }
+
+    return super.deviceSupportedCharacteristics;
   }
 }

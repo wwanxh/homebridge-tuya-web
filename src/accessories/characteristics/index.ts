@@ -30,16 +30,20 @@ export type ColorModes = typeof COLOR_MODES[number] | "white";
 export const CLIMATE_MODES = ["cold", "hot", "wind", "auto"] as const;
 export type ClimateMode = typeof CLIMATE_MODES[number];
 
-export type Characteristic =
+export type GeneralCharacteristic =
   | typeof ActiveCharacteristic
   | typeof BrightnessCharacteristic
   | typeof ColorTemperatureCharacteristic
   | typeof CurrentHeatingCoolingStateCharacteristic
   | typeof CurrentTemperatureCharacteristic
-  | typeof HueCharacteristic
   | typeof MomentaryOnCharacteristic
   | typeof OnCharacteristic
   | typeof RotationSpeedCharacteristic
-  | typeof SaturationCharacteristic
   | typeof TargetHeatingCoolingStateCharacteristic
   | typeof TargetTemperatureCharacteristic;
+
+export type ColorCharacteristic =
+  | typeof HueCharacteristic
+  | typeof SaturationCharacteristic;
+
+export type Characteristic = GeneralCharacteristic | ColorCharacteristic;

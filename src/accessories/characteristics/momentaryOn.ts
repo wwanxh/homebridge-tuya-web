@@ -1,4 +1,3 @@
-import { TuyaDevice } from "../../TuyaWebApi";
 import {
   CharacteristicGetCallback,
   CharacteristicSetCallback,
@@ -6,8 +5,7 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-
-type DeviceWithOnCharacteristic = TuyaDevice<never>;
+import { DeviceState } from "../../api/response";
 
 export class MomentaryOnCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.MomentaryOn";
@@ -23,7 +21,7 @@ export class MomentaryOnCharacteristic extends TuyaWebCharacteristic {
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     const value = 0;
     this.debug("[GET] %s", value);
-    this.updateValue(undefined, callback);
+    this.updateValue({}, callback);
   }
 
   public setRemoteValue(
@@ -54,10 +52,7 @@ export class MomentaryOnCharacteristic extends TuyaWebCharacteristic {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithOnCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     callback && callback(null, 0);
   }
 }

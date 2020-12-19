@@ -131,13 +131,59 @@
               "placeholder": "35.0",
               "required": false
             },
-            "temperature_factor": {
+            "current_temperature_factor": {
               "title": "Temperature Factor",
               "type": "string",
               "pattern": "^\\d+(?:\\.\\d+)?$",
               "description": "Alters the reported temperatures in HomeKit. I.e. if HomeKit reports 250 while the temperature is 250, enter `0.1` here to report the correct temperature. Defaults to 1, no change.",
               "placeholder": "I.e. 0.1",
               "required": false
+            },
+            "target_temperature_factor": {
+              "title": "Target Temperature Factor",
+              "type": "string",
+              "pattern": "^\\d+(?:\\.\\d+)?$",
+              "description": "Alters the reported target temperatures in HomeKit. Defaults to 1, no change.",
+              "placeholder": "I.e. 0.1",
+              "required": false
+            },
+            "dimmer_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": [
+                  "Brightness"
+                ]
+              }
+            },
+            "fan_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": [
+                  "Speed"
+                ]
+              }
+            },
+            "light_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": [
+                  "Brightness",
+                  "Color",
+                  "Color Temperature"
+                ]
+              }
             }
           }
         }
@@ -200,6 +246,24 @@
               "key": "defaults[].device_type"
             },
             {
+              "key": "defaults[].dimmer_characteristics",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'dimmer')"
+              }
+            },
+            {
+              "key": "defaults[].fan_characteristics",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'fan')"
+              }
+            },
+            {
+              "key": "defaults[].light_characteristics",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'light')"
+              }
+            },
+            {
               "key": "defaults[].min_temper",
               "condition": {
                 "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
@@ -212,7 +276,13 @@
               }
             },
             {
-              "key": "defaults[].temperature_factor",
+              "key": "defaults[].current_temperature_factor",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].target_temperature_factor",
               "condition": {
                 "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
               }

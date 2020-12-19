@@ -1,22 +1,13 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   CharacteristicGetCallback,
   CharacteristicSetCallback,
   CharacteristicValue,
 } from "homebridge";
-import { COLOR_MODES, ColorModes } from "./index";
-import { XOR } from "ts-xor";
+import { COLOR_MODES } from "./index";
 import { inspect } from "util";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-
-export type BrightnessCharacteristicData = XOR<
-  { brightness: string },
-  { color: { brightness?: string }; color_mode: ColorModes }
->;
-type DeviceWithBrightnessCharacteristic = TuyaDevice<
-  TuyaDeviceState & BrightnessCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class BrightnessCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.Brightness";
@@ -37,7 +28,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<BrightnessCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
         this.debug("[GET] %s", data?.brightness || data?.color?.brightness);
         this.updateValue(data, callback);
@@ -61,17 +52,14 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithBrightnessCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     // data.brightness only valid for color_mode != color > https://github.com/PaulAnnekov/tuyaha/blob/master/tuyaha/devices/light.py
     // however, according to local tuya app, calculation for color_mode=color is still incorrect (even more so in lower range)
     let stateValue: number | undefined;
     if (
       data?.color_mode !== undefined &&
       data?.color_mode in COLOR_MODES &&
-      data?.color.brightness !== undefined
+      data?.color?.brightness !== undefined
     ) {
       stateValue = Number(data.color.brightness);
     } else if (data?.brightness) {

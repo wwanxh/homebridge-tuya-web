@@ -1,16 +1,8 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import { CharacteristicGetCallback } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
 import { ClimateAccessory } from "../ClimateAccessory";
-
-export type CurrentTemperatureCharacteristicData = {
-  current_temperature?: number;
-  temperature: string;
-};
-type DeviceWithCurrentTemperatureCharacteristic = TuyaDevice<
-  TuyaDeviceState & CurrentTemperatureCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class CurrentTemperatureCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.CurrentTemperature";
@@ -25,23 +17,21 @@ export class CurrentTemperatureCharacteristic extends TuyaWebCharacteristic {
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<CurrentTemperatureCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
-        this.debug("[GET] current_temp: %s", data?.current_temperature);
+        this.debug("[GET] %s", data?.current_temperature);
         this.updateValue(data, callback);
       })
       .catch(this.accessory.handleError("GET", callback));
   }
 
-  updateValue(
-    data: DeviceWithCurrentTemperatureCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     const currentTemperature = data?.current_temperature
-      ? data?.current_temperature *
-        (this.accessory as ClimateAccessory).temperatureFactor
+      ? Number(data?.current_temperature) *
+        (this.accessory as ClimateAccessory).currentTemperatureFactor
       : undefined;
     if (currentTemperature) {
+      this.debug("[UPDATE] %s", currentTemperature);
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         currentTemperature,

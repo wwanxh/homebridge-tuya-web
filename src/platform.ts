@@ -8,13 +8,6 @@ import {
 } from "homebridge";
 import { PLATFORM_NAME, PLUGIN_NAME, TUYA_DISCOVERY_TIMEOUT } from "./settings";
 import {
-  TuyaDevice,
-  TuyaDeviceType,
-  TuyaDeviceTypes,
-  TuyaPlatforms,
-  TuyaWebApi,
-} from "./TuyaWebApi";
-import {
   BaseAccessory,
   DimmerAccessory,
   FanAccessory,
@@ -27,10 +20,13 @@ import { TuyaDeviceDefaults, TuyaWebConfig } from "./config";
 import { AuthenticationError } from "./errors";
 import { DeviceList } from "./helpers/DeviceList";
 import { ClimateAccessory } from "./accessories";
+import { TuyaDevice, TuyaDeviceType, TuyaDeviceTypes } from "./api/response";
+import { TuyaWebApi } from "./api/service";
+import { TuyaPlatforms } from "./api/platform";
 
-export type HomebridgeAccessory<
-  DeviceConfig extends TuyaDevice
-> = PlatformAccessory & { controller?: BaseAccessory<DeviceConfig> };
+export type HomebridgeAccessory = PlatformAccessory & {
+  controller?: BaseAccessory;
+};
 
 /**
  * HomebridgePlatform
@@ -44,10 +40,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
 
   // this is used to track restored cached accessories
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public readonly accessories: Map<
-    string,
-    HomebridgeAccessory<any>
-  > = new Map();
+  public readonly accessories: Map<string, HomebridgeAccessory> = new Map();
 
   // Cloud polling interval in seconds
   private readonly pollingInterval?: number;
@@ -107,38 +100,40 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     // Dynamic Platform plugins should only register new accessories after this event was fired,
     // in order to ensure they weren't added to homebridge already. This event can also be used
     // to start discovery of new accessories.
-    this.api.on("didFinishLaunching", async () => {
-      try {
-        await this.tuyaWebApi.getOrRefreshToken();
-        // run the method to discover / register your devices as accessories
-        await this.discoverDevices();
+    this.api.on("didFinishLaunching", async () => this.postLaunchSetup());
+  }
 
-        if (this.pollingInterval) {
-          //Tuya will probably still complain if we fetch a new request on the exact second.
-          const pollingInterval = Math.max(
-            this.pollingInterval,
-            TUYA_DISCOVERY_TIMEOUT + 5
-          );
-          this.log?.info(
-            "Enable cloud polling with interval %ss",
-            pollingInterval
-          );
-          // Set interval for refreshing device states
-          setInterval(() => {
-            this.refreshDeviceStates().catch((error) => {
-              this.log.error(error.message);
-            });
-          }, pollingInterval * 1000);
-        }
-      } catch (e) {
-        if (e instanceof AuthenticationError) {
-          this.log.error("Authentication error: %s", e.message);
-        } else {
-          this.log.error(e.message);
-          this.log.debug(e);
-        }
+  private async postLaunchSetup(): Promise<void> {
+    try {
+      await this.tuyaWebApi.getOrRefreshToken();
+      // run the method to discover / register your devices as accessories
+      await this.discoverDevices();
+
+      if (this.pollingInterval) {
+        //Tuya will probably still complain if we fetch a new request on the exact second.
+        const pollingInterval = Math.max(
+          this.pollingInterval,
+          TUYA_DISCOVERY_TIMEOUT + 5
+        );
+        this.log?.info(
+          "Enable cloud polling with interval %ss",
+          pollingInterval
+        );
+        // Set interval for refreshing device states
+        setInterval(() => {
+          this.refreshDeviceStates().catch((error) => {
+            this.log.error(error.message);
+          });
+        }, pollingInterval * 1000);
       }
-    });
+    } catch (e) {
+      if (e instanceof AuthenticationError) {
+        this.log.error("Authentication error: %s", e.message);
+      } else {
+        this.log.error(e.message);
+        this.log.debug(e);
+      }
+    }
   }
 
   /**

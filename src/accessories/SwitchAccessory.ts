@@ -1,17 +1,23 @@
 import { BaseAccessory } from "./BaseAccessory";
-import { TuyaDevice, TuyaDeviceState } from "../TuyaWebApi";
-import {
-  Characteristic,
-  OnCharacteristic,
-  OnCharacteristicData,
-} from "./characteristics";
+import { HomebridgeAccessory, TuyaWebPlatform } from "../platform";
+import { Categories } from "homebridge";
+import { GeneralCharacteristic, OnCharacteristic } from "./characteristics";
+import { TuyaDevice } from "../api/response";
 
-type SwitchAccessoryConfig = TuyaDevice & {
-  data: TuyaDeviceState & OnCharacteristicData;
-};
+export class SwitchAccessory extends BaseAccessory {
+  constructor(
+    platform: TuyaWebPlatform,
+    homebridgeAccessory: HomebridgeAccessory,
+    deviceConfig: TuyaDevice
+  ) {
+    super(platform, homebridgeAccessory, deviceConfig, Categories.SWITCH);
+  }
 
-export class SwitchAccessory extends BaseAccessory<SwitchAccessoryConfig> {
-  supportedCharacteristics(): Characteristic[] {
+  public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
+    return [OnCharacteristic];
+  }
+
+  public get requiredCharacteristics(): GeneralCharacteristic[] {
     return [OnCharacteristic];
   }
 }

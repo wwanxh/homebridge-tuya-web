@@ -1,4 +1,3 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   Characteristic,
   CharacteristicGetCallback,
@@ -8,15 +7,7 @@ import {
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
 import { ClimateAccessory } from "../ClimateAccessory";
-
-export type TargetTemperatureCharacteristicData = {
-  temperature: number;
-  min_temper?: number;
-  max_temper?: number;
-};
-type DeviceWithCurrentTemperatureCharacteristic = TuyaDevice<
-  TuyaDeviceState & TargetTemperatureCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.TargetTemperature";
@@ -25,32 +16,32 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
     return accessory.platform.Characteristic.TargetTemperature;
   }
 
-  public get minTemp(): number {
+  private get minTemp(): number {
     if (this.accessory.deviceConfig.config?.min_temper) {
       return Number(this.accessory.deviceConfig.config.min_temper);
     }
 
-    const data = (this.accessory.deviceConfig
-      .data as unknown) as TargetTemperatureCharacteristicData;
+    const data = this.accessory.deviceConfig.data;
     if (data.min_temper) {
       return (
-        data.min_temper * (this.accessory as ClimateAccessory).temperatureFactor
+        Number(data.min_temper) *
+        (this.accessory as ClimateAccessory).targetTemperatureFactor
       );
     }
 
     return 0;
   }
 
-  public get maxTemp(): number {
+  private get maxTemp(): number {
     if (this.accessory.deviceConfig.config?.max_temper) {
       return Number(this.accessory.deviceConfig.config.max_temper);
     }
 
-    const data = (this.accessory.deviceConfig
-      .data as unknown) as TargetTemperatureCharacteristicData;
+    const data = this.accessory.deviceConfig.data;
     if (data.max_temper) {
       return (
-        data.max_temper * (this.accessory as ClimateAccessory).temperatureFactor
+        Number(data.max_temper) *
+        (this.accessory as ClimateAccessory).targetTemperatureFactor
       );
     }
 
@@ -61,6 +52,7 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
     return char?.setProps({
       minValue: this.minTemp,
       maxValue: this.maxTemp,
+      minStep: 0.5,
     });
   }
 
@@ -70,9 +62,9 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<TargetTemperatureCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
-        this.debug("[GET] temperature: %s", data?.temperature);
+        this.debug("[GET] %s", data?.temperature);
         this.updateValue(data, callback);
       })
       .catch(this.accessory.handleError("GET", callback));
@@ -93,15 +85,13 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithCurrentTemperatureCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     const temperature = data?.temperature
-      ? data?.temperature *
-        (this.accessory as ClimateAccessory).temperatureFactor
+      ? Number(data?.temperature) *
+        (this.accessory as ClimateAccessory).targetTemperatureFactor
       : undefined;
     if (temperature) {
+      this.debug("[UPDATE] %s", temperature);
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         temperature,

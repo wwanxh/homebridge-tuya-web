@@ -1,21 +1,45 @@
 import { BaseAccessory } from "./BaseAccessory";
-import { TuyaDevice, TuyaDeviceState } from "../TuyaWebApi";
 import { HomebridgeAccessory, TuyaWebPlatform } from "../platform";
 import { Categories } from "homebridge";
-import { OnCharacteristic, OnCharacteristicData } from "./characteristics";
+import {
+  BrightnessCharacteristic,
+  GeneralCharacteristic,
+  OnCharacteristic,
+} from "./characteristics";
+import { TuyaDevice } from "../api/response";
 
-type DimmerAccessoryConfig = TuyaDevice & {
-  data: TuyaDeviceState & OnCharacteristicData;
-};
-
-export class DimmerAccessory extends BaseAccessory<DimmerAccessoryConfig> {
+export class DimmerAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
-    homebridgeAccessory: HomebridgeAccessory<DimmerAccessoryConfig>,
-    deviceConfig: DimmerAccessoryConfig
+    homebridgeAccessory: HomebridgeAccessory,
+    deviceConfig: TuyaDevice
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.LIGHTBULB);
+  }
 
-    new OnCharacteristic(this as BaseAccessory);
+  public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
+    return [OnCharacteristic, BrightnessCharacteristic];
+  }
+
+  public get requiredCharacteristics(): GeneralCharacteristic[] {
+    return [OnCharacteristic];
+  }
+
+  public get deviceSupportedCharacteristics(): GeneralCharacteristic[] {
+    // Get supported characteristics from configuration
+    if (this.deviceConfig.config) {
+      const supportedCharacteristics: GeneralCharacteristic[] = [];
+      if (
+        (this.deviceConfig.config?.dimmer_characteristics || []).includes(
+          "Brightness"
+        )
+      ) {
+        supportedCharacteristics.push(BrightnessCharacteristic);
+      }
+
+      return supportedCharacteristics;
+    }
+
+    return super.deviceSupportedCharacteristics;
   }
 }

@@ -1,42 +1,37 @@
-import { TuyaDevice, TuyaDeviceState } from "../TuyaWebApi";
 import { HomebridgeAccessory, TuyaWebPlatform } from "../platform";
 import { Categories } from "homebridge";
 import {
-  ActiveCharacteristicData,
-  Characteristic,
   CurrentHeatingCoolingStateCharacteristic,
   CurrentTemperatureCharacteristic,
+  GeneralCharacteristic,
   TargetHeatingCoolingStateCharacteristic,
   TargetTemperatureCharacteristic,
 } from "./characteristics";
 import { BaseAccessory } from "./BaseAccessory";
 import { TuyaDeviceDefaults } from "../config";
+import { TuyaDevice } from "../api/response";
+import { TemperatureDisplayUnitsCharacteristic } from "./characteristics/temperatureDisplayUnits";
 
-type ClimateAccessoryConfig = TuyaDevice & {
-  data: TuyaDeviceState &
-    ActiveCharacteristicData & {
-      max_temper: number;
-      min_temper: number;
-      temperature: number;
-      mode?: ClimateMode;
-      support_mode?: ClimateMode[];
-      temp_unit?: "CELSIUS";
-      current_temperature?: number;
-    };
-};
-
-export class ClimateAccessory extends BaseAccessory<ClimateAccessoryConfig> {
+export class ClimateAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
-    homebridgeAccessory: HomebridgeAccessory<ClimateAccessoryConfig>,
-    deviceConfig: ClimateAccessoryConfig
+    homebridgeAccessory: HomebridgeAccessory,
+    deviceConfig: TuyaDevice
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.THERMOSTAT);
   }
 
-  public get temperatureFactor(): number {
-    if (this.deviceConfig.config?.temperature_factor) {
-      return Number(this.deviceConfig.config.temperature_factor);
+  public get targetTemperatureFactor(): number {
+    if (this.deviceConfig.config?.target_temperature_factor) {
+      return Number(this.deviceConfig.config.target_temperature_factor);
+    }
+
+    return 1;
+  }
+
+  public get currentTemperatureFactor(): number {
+    if (this.deviceConfig.config?.current_temperature_factor) {
+      return Number(this.deviceConfig.config.current_temperature_factor);
     }
 
     return 1;
@@ -68,14 +63,25 @@ export class ClimateAccessory extends BaseAccessory<ClimateAccessoryConfig> {
       }
     }
 
-    if (config?.temperature_factor) {
-      const tempFactor = Number(config.temperature_factor);
+    if (config?.target_temperature_factor) {
+      const tempFactor = Number(config.target_temperature_factor);
       if (!tempFactor) {
         errors.push(
-          "Wrong value configured for `temperature_factor`, should be a number"
+          "Wrong value configured for `target_temperature_factor`, should be a number"
         );
       } else {
-        config.temperature_factor = tempFactor;
+        config.target_temperature_factor = tempFactor;
+      }
+    }
+
+    if (config?.current_temperature_factor) {
+      const tempFactor = Number(config.current_temperature_factor);
+      if (!tempFactor) {
+        errors.push(
+          "Wrong value configured for `current_temperature_factor`, should be a number"
+        );
+      } else {
+        config.current_temperature_factor = tempFactor;
       }
     }
 
@@ -96,12 +102,23 @@ export class ClimateAccessory extends BaseAccessory<ClimateAccessoryConfig> {
     return errors;
   }
 
-  supportedCharacteristics(): Characteristic[] {
+  public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
     return [
       CurrentTemperatureCharacteristic,
       TargetTemperatureCharacteristic,
       CurrentHeatingCoolingStateCharacteristic,
       TargetHeatingCoolingStateCharacteristic,
+      TemperatureDisplayUnitsCharacteristic,
+    ];
+  }
+
+  public get requiredCharacteristics(): GeneralCharacteristic[] {
+    return [
+      CurrentTemperatureCharacteristic,
+      TargetTemperatureCharacteristic,
+      CurrentHeatingCoolingStateCharacteristic,
+      TargetHeatingCoolingStateCharacteristic,
+      TemperatureDisplayUnitsCharacteristic,
     ];
   }
 }

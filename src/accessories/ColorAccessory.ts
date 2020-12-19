@@ -1,23 +1,23 @@
 import { BaseAccessory } from "./BaseAccessory";
-import { TuyaDevice } from "../TuyaWebApi";
 import debounce from "lodash.debounce";
 import { DebouncedPromise } from "../helpers/DebouncedPromise";
 import {
   BrightnessCharacteristic,
-  BrightnessCharacteristicData,
+  Characteristic,
   COLOR_MODES,
   HueCharacteristic,
   SaturationCharacteristic,
 } from "./characteristics";
 
-export abstract class ColorAccessory<
-  DeviceConfig extends TuyaDevice = TuyaDevice
-> extends BaseAccessory<DeviceConfig> {
+export abstract class ColorAccessory extends BaseAccessory {
+  public abstract get accessorySupportedCharacteristics(): Characteristic[];
+  public abstract get requiredCharacteristics(): Characteristic[];
+
   private async setRemoteColor(color: {
     hue: number;
     saturation: number;
   }): Promise<void> {
-    const cachedValue = this.cachedValue<BrightnessCharacteristicData>(true);
+    const cachedValue = this.cachedValue(true);
     const brightness = Number(
       cachedValue
         ? cachedValue.brightness
@@ -72,11 +72,5 @@ export abstract class ColorAccessory<
     this.setColorDebounced();
 
     return this.debouncePromise.promise;
-  }
-
-  public initCharacteristics(): void {
-    for (const characteristic of this.supportedCharacteristics()) {
-      new characteristic(this);
-    }
   }
 }

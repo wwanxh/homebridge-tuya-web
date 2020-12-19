@@ -6,38 +6,20 @@ import {
   CharacteristicSetCallback,
   CharacteristicValue,
 } from "homebridge";
-import { TuyaDevice } from "../../TuyaWebApi";
 
 export abstract class TuyaWebCharacteristic<
-  DeviceConfig extends TuyaDevice = TuyaDevice,
-  Accessory extends BaseAccessory<DeviceConfig> = BaseAccessory<DeviceConfig>
+  Accessory extends BaseAccessory = BaseAccessory
 > {
   public static Title: string;
   public static HomekitCharacteristic: (
     accessory: BaseAccessory
   ) => CharacteristicConstructor;
 
-  public static isSupportedByAccessory<Accessory extends BaseAccessory>(
-    accessory: Accessory
-  ): boolean {
-    accessory.log.error(
-      "Method `isSupportedByAccessory must be overwritten by Characteristic, missing for %s",
-      this.Title
-    );
-    return false;
-  }
-
   public setProps(characteristic?: Characteristic): Characteristic | undefined {
     return characteristic;
   }
 
   constructor(protected accessory: Accessory) {
-    this.accessory = accessory;
-    if (!this.staticInstance.isSupportedByAccessory(accessory)) {
-      this.disable();
-      return;
-    }
-
     this.enable();
   }
 
@@ -92,12 +74,12 @@ export abstract class TuyaWebCharacteristic<
   ): void;
 
   private enable(): void {
-    this.debug("Enabled");
     const char = this.setProps(
       this.accessory.service?.getCharacteristic(this.homekitCharacteristic)
     );
 
     if (char) {
+      this.debug(JSON.stringify(char.props));
       char.on("get", this.getRemoteValue.bind(this));
       if (this.setRemoteValue) {
         char.on("set", this.setRemoteValue.bind(this));
@@ -107,13 +89,6 @@ export abstract class TuyaWebCharacteristic<
     this.accessory.addUpdateCallback(
       this.homekitCharacteristic,
       this.updateValue.bind(this)
-    );
-  }
-
-  private disable(): void {
-    this.debug("Characteristic not supported");
-    this.accessory.service?.removeCharacteristic(
-      new this.homekitCharacteristic()
     );
   }
 }

@@ -1,21 +1,13 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   CharacteristicGetCallback,
   CharacteristicSetCallback,
   CharacteristicValue,
 } from "homebridge";
-import { COLOR_MODES, ColorModes } from "./index";
+import { COLOR_MODES } from "./index";
 import { TuyaWebCharacteristic } from "./base";
 import { ColorAccessory } from "../ColorAccessory";
 import { BaseAccessory } from "../BaseAccessory";
-
-export type HueCharacteristicData = {
-  color: { hue?: string };
-  color_mode: ColorModes;
-};
-type DeviceWithHueCharacteristic = TuyaDevice<
-  TuyaDeviceState & HueCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class HueCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
   public static Title = "Characteristic.Hue";
@@ -33,7 +25,7 @@ export class HueCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<HueCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
         this.debug("[GET] %s", data?.color?.hue);
         this.updateValue(data, callback);
@@ -57,10 +49,7 @@ export class HueCharacteristic extends TuyaWebCharacteristic<ColorAccessory> {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithHueCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     let stateValue: number = HueCharacteristic.DEFAULT_VALUE;
     if (
       data?.color_mode !== undefined &&

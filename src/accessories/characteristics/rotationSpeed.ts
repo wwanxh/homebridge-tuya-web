@@ -1,4 +1,3 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   Characteristic,
   CharacteristicGetCallback,
@@ -10,14 +9,7 @@ import {
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
 import { MapRange } from "../../helpers/MapRange";
-
-export type RotationSpeedCharacteristicData = {
-  speed_level: number;
-  speed: string;
-};
-type DeviceWithRotationSpeedCharacteristic = TuyaDevice<
-  TuyaDeviceState & RotationSpeedCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.RotationSpeed";
@@ -49,9 +41,8 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
   }
 
   public get maxSpeedLevel(): number {
-    const data = (this.accessory.deviceConfig
-      .data as unknown) as RotationSpeedCharacteristicData;
-    return data.speed_level;
+    const data = this.accessory.deviceConfig.data;
+    return Number(data.speed_level) || 1;
   }
 
   public get minStep(): number {
@@ -60,7 +51,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<RotationSpeedCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
         this.debug("[GET] %s", data?.speed);
         this.updateValue(data, callback);
@@ -88,10 +79,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithRotationSpeedCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (data?.speed !== undefined) {
       const speed = this.range.inverseMap(Number(data.speed));
       this.accessory.setCharacteristic(

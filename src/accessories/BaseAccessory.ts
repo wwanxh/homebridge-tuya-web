@@ -11,90 +11,63 @@ import {
   WithUUID,
 } from "homebridge";
 import debounce from "lodash.debounce";
-import {
-  TuyaApiMethod,
-  TuyaApiPayload,
-  TuyaDevice,
-  TuyaDeviceState,
-} from "../TuyaWebApi";
-import { PLUGIN_NAME, TUYA_DEVICE_TIMEOUT } from "../settings";
+import { PLUGIN_NAME } from "../settings";
 import { inspect } from "util";
 import { DebouncedPromise } from "../helpers/DebouncedPromise";
 import { ErrorCallback, RatelimitError } from "../errors";
 import { TuyaDeviceDefaults } from "../config";
-import { Characteristic as Char } from "./characteristics";
+import { GeneralCharacteristic } from "./characteristics";
+import {
+  DeviceState,
+  TuyaApiMethod,
+  TuyaApiPayload,
+  TuyaDevice,
+} from "../api/response";
+import { Cache } from "../helpers/cache";
 
 export type CharacteristicConstructor = WithUUID<{
   new (): Characteristic;
 }>;
 
-type UpdateCallback<DeviceConfig extends TuyaDevice> = (
-  data?: DeviceConfig["data"],
+type UpdateCallback = (
+  data?: DeviceState,
   callback?: CharacteristicGetCallback
 ) => void;
 
-class Cache<DeviceConfig extends TuyaDevice = TuyaDevice> {
-  private value?: DeviceConfig["data"];
-  private validUntil = 0;
-
-  public get valid(): boolean {
-    return (
-      this.validUntil > Cache.getCurrentEpoch() && this.value !== undefined
-    );
-  }
-
-  public set(data: DeviceConfig["data"]): void {
-    this.validUntil = Cache.getCurrentEpoch() + TUYA_DEVICE_TIMEOUT + 5;
-    this.value = data;
-  }
-
-  public renew() {
-    const data = this.get(true);
-    if (data) {
-      this.set(data);
-    }
-  }
-
-  public merge(data: DeviceConfig["data"]): void {
-    this.value = { ...this.value, ...data };
-  }
-
-  /**
-   *
-   * @param always - return the cache even if cache is not valid
-   */
-  public get(always = false): Nullable<DeviceConfig["data"]> {
-    if (!always && !this.valid) {
-      return null;
-    }
-
-    return this.value || null;
-  }
-
-  private static getCurrentEpoch(): number {
-    return Math.ceil(new Date().getTime() / 1000);
-  }
-}
-
-export abstract class BaseAccessory<
-  DeviceConfig extends TuyaDevice = TuyaDevice
-> {
+export abstract class BaseAccessory {
   public readonly log: Logger;
-  private readonly cache = new Cache<DeviceConfig>();
+  private readonly cache = new Cache();
   private readonly serviceType: WithUUID<typeof Service>;
   public readonly service?: Service;
   public readonly deviceId: string;
   private updateCallbackList: Map<
     CharacteristicConstructor,
-    Nullable<UpdateCallback<DeviceConfig>>
+    Nullable<UpdateCallback>
   > = new Map();
 
-  public abstract supportedCharacteristics(): Char[];
+  /**
+   * The characteristics that this device-type could theoretically support.
+   */
+  public abstract get accessorySupportedCharacteristics(): GeneralCharacteristic[];
+
+  /**
+   * The characteristics that this device-type is required to support.
+   */
+  public abstract get requiredCharacteristics(): GeneralCharacteristic[];
+
+  /**
+   * The characteristics that this device actually supports.
+   */
+  public get deviceSupportedCharacteristics(): GeneralCharacteristic[] {
+    return this.accessorySupportedCharacteristics
+      .filter((asc) => !this.requiredCharacteristics.includes(asc))
+      .filter((asc) => asc.isSupportedByAccessory(this));
+  }
 
   constructor(
     public readonly platform: TuyaWebPlatform,
-    public readonly homebridgeAccessory: HomebridgeAccessory<DeviceConfig>,
-    public readonly deviceConfig: DeviceConfig,
+    public readonly homebridgeAccessory: HomebridgeAccessory,
+    public readonly deviceConfig: TuyaDevice,
     private readonly categoryType: Categories
   ) {
     this.log = platform.log;
@@ -162,12 +135,7 @@ export abstract class BaseAccessory<
 
     // Create service
     this.service = this.homebridgeAccessory.getService(this.serviceType);
-    if (this.service) {
-      this.service.setCharacteristic(
-        platform.Characteristic.Name,
-        this.deviceConfig.name
-      );
-    } else {
+    if (!this.service) {
       this.log.debug("Creating New Service %s", this.deviceConfig.id);
       this.service = this.homebridgeAccessory.addService(
         this.serviceType,
@@ -176,12 +144,59 @@ export abstract class BaseAccessory<
     }
 
     this.homebridgeAccessory.on("identify", this.onIdentify.bind(this));
+
+    this.initializeCharacteristics();
+    this.cleanupServices();
   }
 
-  public initCharacteristics(): void {
-    for (const characteristic of this.supportedCharacteristics()) {
-      new characteristic(this);
-    }
+  private get defaultCharacteristics(): CharacteristicConstructor[] {
+    return [
+      this.platform.Characteristic.Manufacturer,
+      this.platform.Characteristic.Model,
+      this.platform.Characteristic.Name,
+      this.platform.Characteristic.SerialNumber,
+    ];
+  }
+
+  private initializeCharacteristics(): void {
+    const deviceSupportedCharacteristics = [
+      ...this.requiredCharacteristics,
+      ...this.deviceSupportedCharacteristics,
+    ];
+    deviceSupportedCharacteristics.forEach((gc) => new gc(this));
+
+    const homekitCharacteristics = deviceSupportedCharacteristics.map(
+      (gc) => gc.HomekitCharacteristic(this).UUID
+    );
+
+    this.service?.characteristics?.forEach((char) => {
+      if (!homekitCharacteristics.includes(char.UUID)) {
+        this.debug(`Characteristic ${char.displayName} not supported`);
+        this.service?.removeCharacteristic(char);
+      }
+    });
+  }
+
+  private cleanupServices(): void {
+    const outdatedServices: Service[] = [];
+    this.homebridgeAccessory.services.forEach((service) => {
+      if (
+        ![
+          this.service?.UUID,
+          this.platform.Service.AccessoryInformation.UUID,
+        ].includes(service.UUID)
+      ) {
+        this.info(
+          `Removing superfluous service: ${
+            service.displayName
+          } (${service.characteristics.map((c) => c.displayName)})`
+        );
+        outdatedServices.push(service);
+      }
+    });
+    outdatedServices.forEach((service) =>
+      this.homebridgeAccessory.removeService(service)
+    );
   }
 
   /**
@@ -212,8 +227,8 @@ export abstract class BaseAccessory<
     this.log.info("[IDENTIFY] %s", this.name);
   }
 
-  public cachedValue<T>(always = false): Nullable<TuyaDeviceState & T> {
-    return (this.cache.get(always) as unknown) as TuyaDeviceState & T;
+  public cachedValue(always = false): Nullable<DeviceState> {
+    return this.cache.get(always);
   }
 
   private debouncedDeviceStateRequest = debounce(
@@ -222,9 +237,7 @@ export abstract class BaseAccessory<
     { maxWait: 1500 }
   );
 
-  private debouncedDeviceStateRequestPromise?: DebouncedPromise<
-    TuyaDeviceState & DeviceConfig["data"]
-  >;
+  private debouncedDeviceStateRequestPromise?: DebouncedPromise<DeviceState>;
 
   public async resolveDeviceStateRequest() {
     const promise = this.debouncedDeviceStateRequestPromise;
@@ -243,11 +256,9 @@ export abstract class BaseAccessory<
 
     try {
       const data = await this.platform.tuyaWebApi.getDeviceState(this.deviceId);
-      if (data) {
-        this.debug("Set device state request cache");
-        this.cache.set(data);
-      }
       this.debug("Resolving resolveDeviceStateRequest from remote");
+      this.debug("Set device state request cache");
+      this.cache.set(data);
       promise.resolve(data);
     } catch (error) {
       if (error instanceof RatelimitError) {
@@ -262,7 +273,7 @@ export abstract class BaseAccessory<
     }
   }
 
-  public async getDeviceState<T>(): Promise<(TuyaDeviceState & T) | undefined> {
+  public async getDeviceState(): Promise<DeviceState> {
     this.debug("Requesting device state");
     if (!this.debouncedDeviceStateRequestPromise) {
       this.debug("Creating new debounced promise");
@@ -272,8 +283,7 @@ export abstract class BaseAccessory<
     this.debug("Triggering debouncedDeviceStateRequest");
     this.debouncedDeviceStateRequest();
 
-    return (this.debouncedDeviceStateRequestPromise
-      .promise as unknown) as Promise<(TuyaDeviceState & T) | undefined>;
+    return this.debouncedDeviceStateRequestPromise.promise;
   }
 
   public async setDeviceState<Method extends TuyaApiMethod, T>(
@@ -281,7 +291,7 @@ export abstract class BaseAccessory<
     payload: TuyaApiPayload<Method>,
     cache: T
   ): Promise<void> {
-    this.cache.merge((cache as unknown) as TuyaDeviceState & T);
+    this.cache.merge(cache);
 
     return this.platform.tuyaWebApi.setDeviceState(
       this.deviceId,
@@ -290,7 +300,7 @@ export abstract class BaseAccessory<
     );
   }
 
-  public updateAccessory(device: DeviceConfig) {
+  public updateAccessory(device: TuyaDevice) {
     const setCharacteristic = (characteristic, value): void => {
       const char =
         accessoryInformationService.getCharacteristic(characteristic) ||
@@ -316,12 +326,16 @@ export abstract class BaseAccessory<
       this.deviceConfig.id
     );
     setCharacteristic(this.platform.Characteristic.Manufacturer, PLUGIN_NAME);
+    setCharacteristic(
+      this.platform.Characteristic.Model,
+      device.dev_type.charAt(0).toUpperCase() + device.dev_type.slice(1)
+    );
 
     // Update device specific state
     this.updateState(device.data);
   }
 
-  private updateState(data: DeviceConfig["data"]): void {
+  private updateState(data: DeviceState): void {
     this.cache.set(data);
     for (const [, callback] of this.updateCallbackList) {
       if (callback !== null) {
@@ -332,7 +346,7 @@ export abstract class BaseAccessory<
 
   public addUpdateCallback(
     char: CharacteristicConstructor,
-    callback: UpdateCallback<DeviceConfig>
+    callback: UpdateCallback
   ) {
     this.updateCallbackList.set(char, callback);
   }

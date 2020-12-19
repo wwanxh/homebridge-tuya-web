@@ -1,4 +1,3 @@
-import { TuyaDevice, TuyaDeviceState } from "../../TuyaWebApi";
 import {
   CharacteristicGetCallback,
   CharacteristicSetCallback,
@@ -7,11 +6,7 @@ import {
 import { TuyaWebCharacteristic } from "./base";
 import { MapRange } from "../../helpers/MapRange";
 import { BaseAccessory } from "../BaseAccessory";
-
-export type ColorTemperatureCharacteristicData = { color_temp: number };
-type DeviceWithColorTemperatureCharacteristic = TuyaDevice<
-  TuyaDeviceState & ColorTemperatureCharacteristicData
->;
+import { DeviceState } from "../../api/response";
 
 // Homekit uses mired light units, Tuya uses kelvin
 // Mired = 1.000.000/Kelvin
@@ -23,18 +18,18 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
     return accessory.platform.Characteristic.ColorTemperature;
   }
 
+  public static isSupportedByAccessory(accessory): boolean {
+    return accessory.deviceConfig.data.color_temp !== undefined;
+  }
+
   private rangeMapper = MapRange.from(1000000 / 140, 1000000 / 500).to(
     10000,
     1000
   );
 
-  public static isSupportedByAccessory(accessory): boolean {
-    return accessory.deviceConfig.data.color_temp !== undefined;
-  }
-
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
-      .getDeviceState<ColorTemperatureCharacteristicData>()
+      .getDeviceState()
       .then((data) => {
         this.debug("[GET] %s", data?.color_temp);
         this.updateValue(data, callback);
@@ -69,13 +64,10 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
       .catch(this.accessory.handleError("SET", callback));
   }
 
-  updateValue(
-    data: DeviceWithColorTemperatureCharacteristic["data"] | undefined,
-    callback?: CharacteristicGetCallback
-  ): void {
+  updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (data?.color_temp !== undefined) {
       const homekitColorTemp = Math.round(
-        this.rangeMapper.inverseMap(1000000 / data.color_temp)
+        this.rangeMapper.inverseMap(1000000 / Number(data.color_temp))
       );
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
