@@ -93,6 +93,10 @@
                   "enum": ["fan"]
                 },
                 {
+                  "title": "Garage Door",
+                  "enum": ["garage"]
+                },
+                {
                   "title": "Light",
                   "enum": ["light"]
                 },

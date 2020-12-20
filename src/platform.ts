@@ -24,6 +24,7 @@ import { DeviceList } from "./helpers/DeviceList";
 import { TuyaDevice, TuyaDeviceType, TuyaDeviceTypes } from "./api/response";
 import { TuyaWebApi } from "./api/service";
 import { TuyaPlatforms } from "./api/platform";
+import { GarageDoorAccessory } from "./accessories/GarageDoorAccessory";
 
 export type HomebridgeAccessory = PlatformAccessory & {
   controller?: BaseAccessory;
@@ -211,6 +212,9 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         break;
       case "fan":
         new FanAccessory(this, homebridgeAccessory, device as any);
+        break;
+      case "garage":
+        new GarageDoorAccessory(this, homebridgeAccessory, device as any);
         break;
       case "light":
         new LightAccessory(this, homebridgeAccessory, device as any);

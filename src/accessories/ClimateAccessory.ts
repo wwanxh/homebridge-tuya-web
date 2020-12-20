@@ -6,11 +6,11 @@ import {
   GeneralCharacteristic,
   TargetHeatingCoolingStateCharacteristic,
   TargetTemperatureCharacteristic,
+  TemperatureDisplayUnitsCharacteristic,
 } from "./characteristics";
 import { BaseAccessory } from "./BaseAccessory";
 import { TuyaDeviceDefaults } from "../config";
 import { TuyaDevice } from "../api/response";
-import { TemperatureDisplayUnitsCharacteristic } from "./characteristics/temperatureDisplayUnits";
 
 export class ClimateAccessory extends BaseAccessory {
   constructor(

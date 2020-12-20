@@ -31,6 +31,7 @@ export const TuyaDeviceTypes = [
   "cover",
   "dimmer",
   "fan",
+  "garage",
   "light",
   "outlet",
   "scene",

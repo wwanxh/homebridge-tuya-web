@@ -1,15 +1,15 @@
 import { HomebridgeAccessory, TuyaWebPlatform } from "../platform";
 import { Categories } from "homebridge";
 import {
-  CurrentPositionCharacteristic,
+  CurrentDoorStateCharacteristic,
   GeneralCharacteristic,
-  PositionStateCharacteristic,
-  TargetPositionCharacteristic,
+  ObstructionDetectedCharacteristic,
+  TargetDoorStateCharacteristic,
 } from "./characteristics";
 import { BaseAccessory } from "./BaseAccessory";
 import { TuyaDevice } from "../api/response";
 
-export class CoverAccessory extends BaseAccessory {
+export class GarageDoorAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
     homebridgeAccessory: HomebridgeAccessory,
@@ -19,23 +19,23 @@ export class CoverAccessory extends BaseAccessory {
       platform,
       homebridgeAccessory,
       deviceConfig,
-      Categories.WINDOW_COVERING
+      Categories.GARAGE_DOOR_OPENER
     );
   }
 
   public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
     return [
-      CurrentPositionCharacteristic,
-      PositionStateCharacteristic,
-      TargetPositionCharacteristic,
+      CurrentDoorStateCharacteristic,
+      ObstructionDetectedCharacteristic,
+      TargetDoorStateCharacteristic,
     ];
   }
 
   public get requiredCharacteristics(): GeneralCharacteristic[] {
     return [
-      CurrentPositionCharacteristic,
-      PositionStateCharacteristic,
-      TargetPositionCharacteristic,
+      CurrentDoorStateCharacteristic,
+      ObstructionDetectedCharacteristic,
+      TargetDoorStateCharacteristic,
     ];
   }
 }

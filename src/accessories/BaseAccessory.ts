@@ -84,17 +84,20 @@ export abstract class BaseAccessory {
     );
 
     switch (categoryType) {
+      case Categories.FAN:
+        this.serviceType = platform.Service.Fanv2;
+        break;
+      case Categories.GARAGE_DOOR_OPENER:
+        this.serviceType = platform.Service.GarageDoorOpener;
+        break;
       case Categories.LIGHTBULB:
         this.serviceType = platform.Service.Lightbulb;
-        break;
-      case Categories.SWITCH:
-        this.serviceType = platform.Service.Switch;
         break;
       case Categories.OUTLET:
         this.serviceType = platform.Service.Outlet;
         break;
-      case Categories.FAN:
-        this.serviceType = platform.Service.Fanv2;
+      case Categories.SWITCH:
+        this.serviceType = platform.Service.Switch;
         break;
       case Categories.THERMOSTAT:
         this.serviceType = platform.Service.Thermostat;
