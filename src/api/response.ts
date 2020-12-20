@@ -1,6 +1,8 @@
 import { ClimateMode, ColorModes } from "../accessories/characteristics";
 import { TuyaDeviceDefaults } from "../config";
 
+type TuyaBoolean = boolean | "true" | "false" | "True" | "False";
+
 export type DeviceState = Partial<{
   brightness: number | string;
   color: Partial<{ hue: string; saturation: string; brightness: string }>;
@@ -13,12 +15,20 @@ export type DeviceState = Partial<{
   online: boolean;
   speed: number | string;
   speed_level: number | string;
-  state: boolean | "true" | "false";
+  state: TuyaBoolean | CoverState;
+  support_stop: TuyaBoolean;
   temperature: number | string;
 }>;
 
+export enum CoverState {
+  Open = 1,
+  Close = 2,
+  Stopped = 3,
+}
+
 export const TuyaDeviceTypes = [
   "climate",
+  "cover",
   "dimmer",
   "fan",
   "light",
@@ -30,6 +40,7 @@ export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
 
 export const HomeAssistantDeviceTypes = [
   "climate",
+  "cover",
   "dimmer",
   "fan",
   "light",
@@ -74,20 +85,17 @@ export type DeviceQueryPayload = {
 };
 
 export type TuyaApiMethod =
-  | "turnOnOff"
   | "brightnessSet"
-  | "windSpeedSet"
   | "colorSet"
   | "colorTemperatureSet"
   | "modeSet"
-  | "temperatureSet";
+  | "startStop"
+  | "temperatureSet"
+  | "turnOnOff"
+  | "windSpeedSet";
 export type TuyaApiPayload<
   Method extends TuyaApiMethod
-> = Method extends "turnOnOff"
-  ? { value: 0 | 1 }
-  : Method extends "brightnessSet"
-  ? { value: number }
-  : Method extends "windSpeedSet"
+> = Method extends "brightnessSet"
   ? { value: number }
   : Method extends "colorSet"
   ? { color: { hue: number; saturation: number; brightness: number } }
@@ -95,6 +103,12 @@ export type TuyaApiPayload<
   ? { value: number }
   : Method extends "modeSet"
   ? { value: ClimateMode }
+  : Method extends "startStop"
+  ? { value: 0 }
   : Method extends "temperatureSet"
+  ? { value: number }
+  : Method extends "turnOnOff"
+  ? { value: 0 | 1 }
+  : Method extends "windSpeedSet"
   ? { value: number }
   : never;

@@ -99,6 +99,9 @@ export abstract class BaseAccessory {
       case Categories.THERMOSTAT:
         this.serviceType = platform.Service.Thermostat;
         break;
+      case Categories.WINDOW_COVERING:
+        this.serviceType = platform.Service.WindowCovering;
+        break;
       default:
         this.serviceType = platform.Service.AccessoryInformation;
     }
@@ -214,6 +217,16 @@ export abstract class BaseAccessory {
 
   public get name(): string {
     return this.homebridgeAccessory.displayName;
+  }
+
+  public setTuyaCharacteristic(
+    characteristic: CharacteristicConstructor,
+    data: DeviceState
+  ): void {
+    if (this.updateCallbackList.has(characteristic)) {
+      const updateCallback = this.updateCallbackList.get(characteristic);
+      updateCallback && updateCallback(data);
+    }
   }
 
   public setCharacteristic(

@@ -1,4 +1,5 @@
 export * from "./BaseAccessory";
+export * from "./CoverAccessory";
 export * from "./ClimateAccessory";
 export * from "./ColorAccessory";
 export * from "./DimmerAccessory";

@@ -9,6 +9,8 @@ import {
 import { PLATFORM_NAME, PLUGIN_NAME, TUYA_DISCOVERY_TIMEOUT } from "./settings";
 import {
   BaseAccessory,
+  ClimateAccessory,
+  CoverAccessory,
   DimmerAccessory,
   FanAccessory,
   LightAccessory,
@@ -19,7 +21,6 @@ import {
 import { TuyaDeviceDefaults, TuyaWebConfig } from "./config";
 import { AuthenticationError } from "./errors";
 import { DeviceList } from "./helpers/DeviceList";
-import { ClimateAccessory } from "./accessories";
 import { TuyaDevice, TuyaDeviceType, TuyaDeviceTypes } from "./api/response";
 import { TuyaWebApi } from "./api/service";
 import { TuyaPlatforms } from "./api/platform";
@@ -199,6 +200,9 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     // Construct new accessory
     /* eslint-disable @typescript-eslint/no-explicit-any */
     switch (deviceType) {
+      case "cover":
+        new CoverAccessory(this, homebridgeAccessory, device as any);
+        break;
       case "climate":
         new ClimateAccessory(this, homebridgeAccessory, device as any);
         break;

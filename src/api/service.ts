@@ -195,6 +195,7 @@ export class TuyaWebApi {
         data.errorMsg === "you cannot auth exceed once in 60 seconds" &&
         !retryingAfterError
       ) {
+        this.log?.warn("Cannot acquire token, waiting 65 seconds.");
         await delay(65 * 1000);
         this.log?.info("Retrying authentication after previous error.");
         return this.getOrRefreshToken(true);
