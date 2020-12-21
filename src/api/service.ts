@@ -18,6 +18,7 @@ import {
 } from "./response";
 import { TuyaPlatform } from "./platform";
 import delay from "../helpers/delay";
+import { DeviceOfflineError } from "../errors/DeviceOfflineError";
 
 export class TuyaWebApi {
   private session: Session | undefined;
@@ -134,6 +135,8 @@ export class TuyaWebApi {
         "Unsupported Operation",
         "The action you tried to perform is not valid for the current device. Please disable it."
       );
+    } else if (data.header && data.header.code === "TargetOffline") {
+      throw new DeviceOfflineError();
     } else {
       throw new Error(`Invalid payload in response: ${JSON.stringify(data)}`);
     }

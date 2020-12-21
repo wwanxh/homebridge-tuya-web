@@ -12,7 +12,7 @@ export type DeviceState = Partial<{
   max_temper: number | string;
   min_temper: number | string;
   mode: ClimateMode;
-  online: boolean;
+  online: TuyaBoolean;
   speed: number | string;
   speed_level: number | string;
   state: TuyaBoolean | CoverState;

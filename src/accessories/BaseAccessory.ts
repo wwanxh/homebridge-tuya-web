@@ -24,6 +24,7 @@ import {
 } from "../api/response";
 import { Cache } from "../helpers/cache";
 import { TuyaDeviceDefaults } from "../config";
+import { DeviceOfflineError } from "../errors/DeviceOfflineError";
 
 export type CharacteristicConstructor = WithUUID<{
   new (): Characteristic;
@@ -269,6 +270,11 @@ export abstract class BaseAccessory {
     const cached = this.cache.get();
     if (cached !== null) {
       this.debug("Resolving resolveDeviceStateRequest from cache");
+
+      if (String(cached.online).toLowerCase() === "false") {
+        promise.reject(new DeviceOfflineError());
+      }
+
       return promise.resolve(cached);
     }
 
@@ -277,11 +283,21 @@ export abstract class BaseAccessory {
       this.debug("Resolving resolveDeviceStateRequest from remote");
       this.debug("Set device state request cache");
       this.cache.set(data);
+
+      if (String(data.online).toLowerCase() === "false") {
+        promise.reject(new DeviceOfflineError());
+      }
+
       promise.resolve(data);
     } catch (error) {
       if (error instanceof RatelimitError) {
         this.debug("Renewing cache due to RateLimitError");
         const data = this.cache.get(true);
+
+        if (String(data?.online).toLowerCase() === "false") {
+          promise.reject(new DeviceOfflineError());
+        }
+
         if (data) {
           this.cache.renew();
           return promise.resolve(data);
@@ -374,7 +390,11 @@ export abstract class BaseAccessory {
     callback: ErrorCallback
   ): ErrorCallback {
     return (error) => {
-      this.error("[%s] %s", type, error.message);
+      if (error instanceof DeviceOfflineError) {
+        this.error("[%s] %s", type, error.message);
+      } else {
+        this.error("[%s] %s", type, error.message);
+      }
       callback(error);
     };
   }
