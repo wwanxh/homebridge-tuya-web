@@ -85,7 +85,8 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
       );
       callback && callback(null, stateValue);
     } else {
-      this.error(`Unexpected state value provided: ${data?.state}`);
+      callback &&
+        callback(new Error(`Unexpected state value provided: ${data?.state}`));
     }
   }
 }

@@ -53,6 +53,8 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
         !callback
       );
       callback && callback(null, stateValue);
+    } else {
+      callback && callback(new Error("Could not get state from data"));
     }
   }
 }

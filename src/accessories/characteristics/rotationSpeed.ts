@@ -88,6 +88,9 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
         !callback
       );
       callback && callback(null, speed);
+    } else {
+      callback &&
+        callback(new Error(`Unexpected speed value provided: ${data?.speed}`));
     }
   }
 }
