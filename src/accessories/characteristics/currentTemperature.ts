@@ -1,4 +1,4 @@
-import { CharacteristicGetCallback } from "homebridge";
+import { Characteristic, CharacteristicGetCallback } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
 import { ClimateAccessory } from "../ClimateAccessory";
@@ -9,6 +9,14 @@ export class CurrentTemperatureCharacteristic extends TuyaWebCharacteristic {
 
   public static HomekitCharacteristic(accessory: BaseAccessory) {
     return accessory.platform.Characteristic.CurrentTemperature;
+  }
+
+  public setProps(char?: Characteristic): Characteristic | undefined {
+    //Roughly the coldest and hottest temperatures ever recorded on earth.
+    return char?.setProps({
+      minValue: -100,
+      maxValue: 150,
+    });
   }
 
   public static isSupportedByAccessory(accessory): boolean {

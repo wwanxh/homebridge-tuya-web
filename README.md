@@ -137,9 +137,7 @@ There are some valid reasons why you might not want to expose certain devices to
   "platform": "TuyaWebPlatform",
   "name": "TuyaWebPlatform",
   "options": {},
-  "hiddenAccessories": [
-    "<device name or id>"
-  ]
+  "hiddenAccessories": ["<device name or id>"]
 }
 ```
 
@@ -170,10 +168,7 @@ To add specific scenes to HomeKit you can set the `scenes` key to true and set `
   "name": "TuyaWebPlatform",
   "options": {},
   "scenes": true,
-  "scenesWhitelist": [
-    "Scene-id",
-    "Scene-name"
-  ]
+  "scenesWhitelist": ["Scene-id", "Scene-name"]
 }
 ```
 
