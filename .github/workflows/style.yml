@@ -1,4 +1,4 @@
-name: Build
+name: Build and Lint
 
 on: [push, pull_request]
 
@@ -22,7 +22,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build the project
-        run: npm run build
-        env:
-          CI: true
+      - name: Lint the project
+        run: npm run lint
+
+      - name: Prettier the project
+        run: npm run prettier

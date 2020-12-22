@@ -42,21 +42,15 @@
             "oneOf": [
               {
                 "title": "Tuya Smart",
-                "enum": [
-                  "tuya"
-                ]
+                "enum": ["tuya"]
               },
               {
                 "title": "Smart Life",
-                "enum": [
-                  "smart_life"
-                ]
+                "enum": ["smart_life"]
               },
               {
                 "title": "Jinvoo Smart",
-                "enum": [
-                  "jinvoo_smart"
-                ]
+                "enum": ["jinvoo_smart"]
               }
             ],
             "required": true
@@ -71,8 +65,8 @@
         }
       },
       "defaults": {
-        "title": "Overwrite devices",
-        "description": "Device types can be overwritten if devices are wrongfully exposed i.e. an outlet that is exposed as a switch.",
+        "title": "Device Settings",
+        "description": "Here you can configure settings for each of your devices.",
         "type": "array",
         "items": {
           "title": "Overwrite",
@@ -92,42 +86,104 @@
               "oneOf": [
                 {
                   "title": "Dimmer",
-                  "enum": [
-                    "dimmer"
-                  ]
+                  "enum": ["dimmer"]
                 },
                 {
                   "title": "Fan",
-                  "enum": [
-                    "fan"
-                  ]
+                  "enum": ["fan"]
+                },
+                {
+                  "title": "Garage Door",
+                  "enum": ["garage"]
                 },
                 {
                   "title": "Light",
-                  "enum": [
-                    "light"
-                  ]
+                  "enum": ["light"]
                 },
                 {
                   "title": "Outlet",
-                  "enum": [
-                    "outlet"
-                  ]
+                  "enum": ["outlet"]
                 },
                 {
                   "title": "Scene",
-                  "enum": [
-                    "scene"
-                  ]
+                  "enum": ["scene"]
                 },
                 {
                   "title": "Switch",
-                  "enum": [
-                    "switch"
-                  ]
+                  "enum": ["switch"]
+                },
+                {
+                  "title": "Thermostat",
+                  "enum": ["climate"]
+                },
+                {
+                  "title": "Window Cover",
+                  "enum": ["cover"]
                 }
               ],
               "required": true
+            },
+            "min_temper": {
+              "title": "Minimal Temperature",
+              "type": "string",
+              "pattern": "^-?\\d+(?:\\.[05])?$",
+              "description": "The minimal temperature that you want to be able to set in HomeKit, this must be in half degree celsius intervals.",
+              "placeholder": "0.0",
+              "required": false
+            },
+            "max_temper": {
+              "title": "Maximal Temperature",
+              "type": "string",
+              "pattern": "^-?\\d+(?:\\.[05])?$",
+              "description": "The maximal temperature that you want to be able to set in HomeKit, this must be in half degree celsius intervals.",
+              "placeholder": "35.0",
+              "required": false
+            },
+            "current_temperature_factor": {
+              "title": "Temperature Factor",
+              "type": "string",
+              "pattern": "^\\d+(?:\\.\\d+)?$",
+              "description": "Alters the reported temperatures in HomeKit. I.e. if HomeKit reports 250 while the temperature is 250, enter `0.1` here to report the correct temperature. Defaults to 1, no change.",
+              "placeholder": "I.e. 0.1",
+              "required": false
+            },
+            "target_temperature_factor": {
+              "title": "Target Temperature Factor",
+              "type": "string",
+              "pattern": "^\\d+(?:\\.\\d+)?$",
+              "description": "Alters the reported target temperatures in HomeKit. Defaults to 1, no change.",
+              "placeholder": "I.e. 0.1",
+              "required": false
+            },
+            "dimmer_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": ["Brightness"]
+              }
+            },
+            "fan_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": ["Speed"]
+              }
+            },
+            "light_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": ["Brightness", "Color", "Color Temperature"]
+              }
             }
           }
         }
@@ -176,21 +232,11 @@
     "options.platform",
     {
       "type": "fieldset",
-      "title": "Optional Settings",
-      "expandable": true,
-      "expanded": false,
-      "items": [
-        "options.pollingInterval"
-      ]
-    },
-    {
-      "type": "fieldset",
-      "title": "Advanced",
+      "title": "Device Settings",
       "expandable": true,
       "expanded": false,
       "items": [
         {
-          "title": "Device overwrite",
           "type": "array",
           "items": [
             {
@@ -198,9 +244,66 @@
             },
             {
               "key": "defaults[].device_type"
+            },
+            {
+              "key": "defaults[].dimmer_characteristics",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'dimmer')"
+              }
+            },
+            {
+              "key": "defaults[].fan_characteristics",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'fan')"
+              }
+            },
+            {
+              "key": "defaults[].light_characteristics",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'light')"
+              }
+            },
+            {
+              "key": "defaults[].min_temper",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].max_temper",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].current_temperature_factor",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].target_temperature_factor",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Optional Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": ["options.pollingInterval"]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced",
+      "expandable": true,
+      "expanded": false,
+      "items": [
         {
           "title": "Hidden accessories",
           "type": "array",

@@ -1,21 +1,26 @@
-import {BaseAccessory} from './BaseAccessory';
-import {TuyaDevice} from '../TuyaWebApi';
-import {HomebridgeAccessory, TuyaWebPlatform} from '../platform';
-import {Categories} from 'homebridge';
-import {MomentaryOnCharacteristic} from './characteristics/momentaryOn';
+import { BaseAccessory } from "./BaseAccessory";
+import { HomebridgeAccessory, TuyaWebPlatform } from "../platform";
+import { Categories } from "homebridge";
+import {
+  GeneralCharacteristic,
+  MomentaryOnCharacteristic,
+} from "./characteristics";
+import { TuyaDevice } from "../api/response";
 
-type SceneAccessoryConfig = TuyaDevice & {
-  data: never
-}
-
-export class SceneAccessory extends BaseAccessory<SceneAccessoryConfig> {
-
+export class SceneAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
-    homebridgeAccessory: HomebridgeAccessory<SceneAccessoryConfig>,
-    deviceConfig: SceneAccessoryConfig) {
+    homebridgeAccessory: HomebridgeAccessory,
+    deviceConfig: TuyaDevice
+  ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.SWITCH);
+  }
 
-    new MomentaryOnCharacteristic(this as BaseAccessory);
+  public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
+    return [MomentaryOnCharacteristic];
+  }
+
+  public get requiredCharacteristics(): GeneralCharacteristic[] {
+    return [MomentaryOnCharacteristic];
   }
 }
