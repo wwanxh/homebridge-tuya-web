@@ -128,6 +128,8 @@ The temperature factor can be used to influence the shown temperature. If HomeKi
 This will change the shown value from i.e. `220` to `220 * 0.1 = 22`.
 The value entered here must be a positive decimal value i.e. `0.1`, `1`, `2.5`.
 
+If desired, you can overwrite these devices to the temperature sensor. This will only report the current temperature and not allow you to change the temperature.
+
 ## Hiding devices
 
 There are some valid reasons why you might not want to expose certain devices to HomeKit. You might for example have another plugin active which also exposes certain Tuya devices, adding these devices to this list will prevent them from showing up multiple times.

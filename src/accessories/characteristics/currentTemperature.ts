@@ -34,11 +34,13 @@ export class CurrentTemperatureCharacteristic extends TuyaWebCharacteristic {
   }
 
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
-    const currentTemperature = data?.current_temperature
+    let currentTemperature = data?.current_temperature
       ? Number(data?.current_temperature) *
         (this.accessory as ClimateAccessory).currentTemperatureFactor
       : undefined;
     if (currentTemperature) {
+      currentTemperature = Math.round(currentTemperature * 10) / 10;
+
       this.debug("[UPDATE] %s", currentTemperature);
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,

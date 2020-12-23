@@ -113,6 +113,10 @@
                   "enum": ["switch"]
                 },
                 {
+                  "title": "Temperature Sensor",
+                  "enum": ["temperature_sensor"]
+                },
+                {
                   "title": "Thermostat",
                   "enum": ["climate"]
                 },
@@ -278,7 +282,7 @@
             {
               "key": "defaults[].current_temperature_factor",
               "condition": {
-                "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+                "functionBody": "return (['climate', 'temperature_sensor'].includes(model.defaults[arrayIndices].device_type))"
               }
             },
             {

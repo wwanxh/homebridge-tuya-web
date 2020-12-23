@@ -25,6 +25,7 @@ import { TuyaDevice, TuyaDeviceType, TuyaDeviceTypes } from "./api/response";
 import { TuyaWebApi } from "./api/service";
 import { TuyaPlatforms } from "./api/platform";
 import { GarageDoorAccessory } from "./accessories/GarageDoorAccessory";
+import { TemperatureSensorAccessory } from "./accessories/TemperatureSensorAccessory";
 
 export type HomebridgeAccessory = PlatformAccessory & {
   controller?: BaseAccessory;
@@ -227,6 +228,13 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         break;
       case "switch":
         new SwitchAccessory(this, homebridgeAccessory, device as any);
+        break;
+      case "temperature_sensor":
+        new TemperatureSensorAccessory(
+          this,
+          homebridgeAccessory,
+          device as any
+        );
         break;
 
       default:

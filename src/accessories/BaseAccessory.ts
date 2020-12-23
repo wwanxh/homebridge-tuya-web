@@ -100,6 +100,9 @@ export abstract class BaseAccessory {
       case Categories.SWITCH:
         this.serviceType = platform.Service.Switch;
         break;
+      case Categories.SENSOR:
+        this.serviceType = platform.Service.TemperatureSensor;
+        break;
       case Categories.THERMOSTAT:
         this.serviceType = platform.Service.Thermostat;
         break;
@@ -362,7 +365,10 @@ export abstract class BaseAccessory {
     setCharacteristic(this.platform.Characteristic.Manufacturer, PLUGIN_NAME);
     setCharacteristic(
       this.platform.Characteristic.Model,
-      device.dev_type.charAt(0).toUpperCase() + device.dev_type.slice(1)
+      device.dev_type
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ")
     );
 
     // Update device specific state
