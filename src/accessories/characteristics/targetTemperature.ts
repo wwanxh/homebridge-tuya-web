@@ -77,7 +77,15 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
     const temperature = Number(homekitValue);
 
     this.accessory
-      .setDeviceState("temperatureSet", { value: temperature }, { temperature })
+      .setDeviceState(
+        "temperatureSet",
+        { value: temperature },
+        {
+          temperature:
+            temperature /
+            (this.accessory as ClimateAccessory).targetTemperatureFactor,
+        }
+      )
       .then(() => {
         this.debug("[SET] %s %s", homekitValue, temperature);
         callback();
@@ -86,11 +94,13 @@ export class TargetTemperatureCharacteristic extends TuyaWebCharacteristic {
   }
 
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
-    const temperature = data?.temperature
+    let temperature = data?.temperature
       ? Number(data?.temperature) *
         (this.accessory as ClimateAccessory).targetTemperatureFactor
       : undefined;
     if (temperature) {
+      temperature = Math.round(temperature * 10) / 10;
+
       this.debug("[UPDATE] %s", temperature);
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
