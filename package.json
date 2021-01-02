@@ -41,7 +41,7 @@
     "url": "https://github.com/milo526/homebridge-tuya-web/issues"
   },
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "lodash.debounce": "^4.0.8"
   },
   "devDependencies": {
