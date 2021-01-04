@@ -27,11 +27,11 @@ export class FanAccessory extends BaseAccessory {
 
   public get deviceSupportedCharacteristics(): GeneralCharacteristic[] {
     // Get supported characteristics from configuration
-    if (this.deviceConfig.config) {
+    if (Array.isArray(this.deviceConfig.config?.fan_characteristics)) {
       const supportedCharacteristics: GeneralCharacteristic[] = [];
-      if (
-        (this.deviceConfig.config?.fan_characteristics || []).includes("Speed")
-      ) {
+      const configuredCharacteristics =
+        this.deviceConfig.config?.fan_characteristics || [];
+      if (configuredCharacteristics.includes("Speed")) {
         supportedCharacteristics.push(RotationSpeedCharacteristic);
       }
 

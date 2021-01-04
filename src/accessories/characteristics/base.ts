@@ -61,14 +61,14 @@ export abstract class TuyaWebCharacteristic<
     this.log(LogLevel.ERROR, message, ...args);
   }
 
-  public abstract getRemoteValue(callback: CharacteristicGetCallback): void;
+  public getRemoteValue?(callback: CharacteristicGetCallback): void;
 
   public setRemoteValue?(
     homekitValue: CharacteristicValue,
     callback: CharacteristicSetCallback
   ): void;
 
-  public abstract updateValue(
+  public updateValue?(
     data?: Accessory["deviceConfig"]["data"],
     callback?: CharacteristicGetCallback
   ): void;
@@ -80,15 +80,20 @@ export abstract class TuyaWebCharacteristic<
 
     if (char) {
       this.debug(JSON.stringify(char.props));
-      char.on("get", this.getRemoteValue.bind(this));
+      if (this.getRemoteValue) {
+        char.on("get", this.getRemoteValue.bind(this));
+      }
+
       if (this.setRemoteValue) {
         char.on("set", this.setRemoteValue.bind(this));
       }
     }
 
-    this.accessory.addUpdateCallback(
-      this.homekitCharacteristic,
-      this.updateValue.bind(this)
-    );
+    if (this.updateValue) {
+      this.accessory.addUpdateCallback(
+        this.homekitCharacteristic,
+        this.updateValue.bind(this)
+      );
+    }
   }
 }

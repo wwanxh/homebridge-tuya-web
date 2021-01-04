@@ -12,6 +12,7 @@ export type TuyaDeviceDefaults = {
   dimmer_characteristics: "Brightness"[];
   fan_characteristics: "Speed"[];
   light_characteristics: ("Brightness" | "Color" | "Color Temperature")[];
+  cover_characteristics: "Stop"[];
 };
 
 type Config = {

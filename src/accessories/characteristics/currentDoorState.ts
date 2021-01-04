@@ -1,7 +1,8 @@
 import { CharacteristicGetCallback } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { CoverState, DeviceState } from "../../api/response";
+import { CoverState, DeviceState, ExtendedBoolean } from "../../api/response";
+import { TuyaBoolean } from "../../helpers/TuyaBoolean";
 
 export class CurrentDoorStateCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.CurrentDoorState";
@@ -61,10 +62,9 @@ export class CurrentDoorStateCharacteristic extends TuyaWebCharacteristic {
       );
       callback && callback(null, stateValue);
     } else if (["true", "false"].includes(String(data?.state).toLowerCase())) {
-      const stateValue =
-        String(data.state).toLowerCase() === "true"
-          ? this.CurrentDoorState.OPEN
-          : this.CurrentDoorState.CLOSED;
+      const stateValue = TuyaBoolean(data.state as ExtendedBoolean)
+        ? this.CurrentDoorState.OPEN
+        : this.CurrentDoorState.CLOSED;
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,

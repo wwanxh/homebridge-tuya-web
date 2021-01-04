@@ -25,6 +25,7 @@ import {
 import { Cache } from "../helpers/cache";
 import { TuyaDeviceDefaults } from "../config";
 import { DeviceOfflineError } from "../errors/DeviceOfflineError";
+import { TuyaBoolean } from "../helpers/TuyaBoolean";
 
 export type CharacteristicConstructor = WithUUID<{
   new (): Characteristic;
@@ -297,7 +298,7 @@ export abstract class BaseAccessory {
     if (cached !== null) {
       this.debug("Resolving resolveDeviceStateRequest from cache");
 
-      if (String(cached.online).toLowerCase() === "false") {
+      if (!TuyaBoolean(cached.online)) {
         promise.reject(new DeviceOfflineError());
       }
 
@@ -310,7 +311,7 @@ export abstract class BaseAccessory {
       this.debug("Set device state request cache");
       this.cache.set(data);
 
-      if (String(data.online).toLowerCase() === "false") {
+      if (!TuyaBoolean(data.online)) {
         promise.reject(new DeviceOfflineError());
       }
 
@@ -320,7 +321,7 @@ export abstract class BaseAccessory {
         this.debug("Renewing cache due to RateLimitError");
         const data = this.cache.get(true);
 
-        if (String(data?.online).toLowerCase() === "false") {
+        if (!TuyaBoolean(data?.online)) {
           promise.reject(new DeviceOfflineError());
         }
 

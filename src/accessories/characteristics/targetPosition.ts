@@ -8,7 +8,8 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { CoverState, DeviceState } from "../../api/response";
+import { CoverState, DeviceState, ExtendedBoolean } from "../../api/response";
+import { TuyaBoolean } from "../../helpers/TuyaBoolean";
 
 export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.TargetPosition";
@@ -92,7 +93,7 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
       );
       callback && callback(null, stateValue);
     } else if (["true", "false"].includes(String(data?.state).toLowerCase())) {
-      const stateValue = String(data.state).toLowerCase() === "true" ? 100 : 0;
+      const stateValue = TuyaBoolean(data.state as ExtendedBoolean) ? 100 : 0;
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,

@@ -1,7 +1,7 @@
 import { ClimateMode, ColorModes } from "../accessories/characteristics";
 import { TuyaDeviceDefaults } from "../config";
 
-type TuyaBoolean = boolean | "true" | "false" | "True" | "False";
+export type ExtendedBoolean = boolean | "true" | "false" | "True" | "False";
 
 type TuyaProperties = Partial<{
   brightness: number | string;
@@ -12,11 +12,11 @@ type TuyaProperties = Partial<{
   max_temper: number | string;
   min_temper: number | string;
   mode: ClimateMode;
-  online: TuyaBoolean;
+  online: ExtendedBoolean;
   speed: number | string;
   speed_level: number | string;
-  state: TuyaBoolean | CoverState;
-  support_stop: TuyaBoolean;
+  state: ExtendedBoolean | CoverState;
+  support_stop: ExtendedBoolean;
   temperature: number | string;
 }>;
 

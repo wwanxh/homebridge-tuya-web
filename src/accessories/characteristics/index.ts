@@ -5,6 +5,7 @@ import { CurrentDoorStateCharacteristic } from "./currentDoorState";
 import { CurrentHeatingCoolingStateCharacteristic } from "./currentHeatingCoolingState";
 import { CurrentPositionCharacteristic } from "./currentPosition";
 import { CurrentTemperatureCharacteristic } from "./currentTemperature";
+import { HoldPositionCharacteristic } from "./holdPosition";
 import { HueCharacteristic } from "./hue";
 import { MomentaryOnCharacteristic } from "./momentaryOn";
 import { ObstructionDetectedCharacteristic } from "./obstructionDetected";
@@ -52,6 +53,7 @@ export type GeneralCharacteristic =
   | typeof CurrentHeatingCoolingStateCharacteristic
   | typeof CurrentPositionCharacteristic
   | typeof CurrentTemperatureCharacteristic
+  | typeof HoldPositionCharacteristic
   | typeof MomentaryOnCharacteristic
   | typeof ObstructionDetectedCharacteristic
   | typeof OnCharacteristic

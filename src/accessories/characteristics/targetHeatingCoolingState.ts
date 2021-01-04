@@ -7,7 +7,8 @@ import {
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
 import { ClimateMode } from "./index";
-import { DeviceState } from "../../api/response";
+import { DeviceState, ExtendedBoolean } from "../../api/response";
+import { TuyaBoolean } from "../../helpers/TuyaBoolean";
 
 export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.TargetHeatingCoolingState";
@@ -100,7 +101,7 @@ export class TargetHeatingCoolingStateCharacteristic extends TuyaWebCharacterist
   }
 
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
-    if (String(data?.state).toLowerCase() === "false") {
+    if (!TuyaBoolean(data?.state as ExtendedBoolean)) {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         this.TargetHeatingCoolingState.OFF,

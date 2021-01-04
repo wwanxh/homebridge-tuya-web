@@ -8,6 +8,7 @@ import {
 } from "./characteristics";
 import { BaseAccessory } from "./BaseAccessory";
 import { TuyaDevice } from "../api/response";
+import { HoldPositionCharacteristic } from "./characteristics/holdPosition";
 
 export class WindowAccessory extends BaseAccessory {
   constructor(
@@ -21,6 +22,7 @@ export class WindowAccessory extends BaseAccessory {
   public get accessorySupportedCharacteristics(): GeneralCharacteristic[] {
     return [
       CurrentPositionCharacteristic,
+      HoldPositionCharacteristic,
       PositionStateCharacteristic,
       TargetPositionCharacteristic,
     ];
@@ -32,5 +34,21 @@ export class WindowAccessory extends BaseAccessory {
       PositionStateCharacteristic,
       TargetPositionCharacteristic,
     ];
+  }
+
+  public get deviceSupportedCharacteristics(): GeneralCharacteristic[] {
+    // Get supported characteristics from configuration
+    if (Array.isArray(this.deviceConfig.config?.cover_characteristics)) {
+      const supportedCharacteristics: GeneralCharacteristic[] = [];
+      const configuredCharacteristics =
+        this.deviceConfig.config?.cover_characteristics || [];
+      if (configuredCharacteristics.includes("Stop")) {
+        supportedCharacteristics.push(HoldPositionCharacteristic);
+      }
+
+      return supportedCharacteristics;
+    }
+
+    return super.deviceSupportedCharacteristics;
   }
 }

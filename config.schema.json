@@ -163,6 +163,16 @@
               "placeholder": "I.e. 0.1",
               "required": false
             },
+            "cover_characteristics": {
+              "title": "Features",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "title": "Feature",
+                "type": "string",
+                "enum": ["Stop"]
+              }
+            },
             "dimmer_characteristics": {
               "title": "Features",
               "type": "array",
@@ -252,6 +262,12 @@
             },
             {
               "key": "defaults[].device_type"
+            },
+            {
+              "key": "defaults[].cover_characteristics",
+              "condition": {
+                "functionBody": "return (['cover', 'window'].includes(model.defaults[arrayIndices].device_type))"
+              }
             },
             {
               "key": "defaults[].dimmer_characteristics",

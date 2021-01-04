@@ -5,7 +5,8 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { DeviceState } from "../../api/response";
+import { DeviceState, ExtendedBoolean } from "../../api/response";
+import { TuyaBoolean } from "../../helpers/TuyaBoolean";
 
 export class OnCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.On";
@@ -46,7 +47,7 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
 
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (data?.state !== undefined) {
-      const stateValue = String(data.state).toLowerCase() === "true";
+      const stateValue = TuyaBoolean(data.state as ExtendedBoolean);
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
