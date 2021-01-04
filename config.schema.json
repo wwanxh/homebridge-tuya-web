@@ -123,6 +123,10 @@
                 {
                   "title": "Window Cover",
                   "enum": ["cover"]
+                },
+                {
+                  "title": "Window",
+                  "enum": ["window"]
                 }
               ],
               "required": true

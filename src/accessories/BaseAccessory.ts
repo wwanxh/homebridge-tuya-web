@@ -116,6 +116,9 @@ export abstract class BaseAccessory {
       case Categories.THERMOSTAT:
         this.serviceType = platform.Service.Thermostat;
         break;
+      case Categories.WINDOW:
+        this.serviceType = platform.Service.Window;
+        break;
       case Categories.WINDOW_COVERING:
         this.serviceType = platform.Service.WindowCovering;
         break;

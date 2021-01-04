@@ -42,6 +42,7 @@ export const TuyaDeviceTypes = [
   "scene",
   "switch",
   "temperature_sensor",
+  "window",
 ] as const;
 export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
 

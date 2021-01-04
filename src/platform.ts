@@ -27,6 +27,7 @@ import { TuyaPlatforms } from "./api/platform";
 import { GarageDoorAccessory } from "./accessories/GarageDoorAccessory";
 import { TemperatureSensorAccessory } from "./accessories/TemperatureSensorAccessory";
 import { Cache } from "./helpers/cache";
+import { WindowAccessory } from "./accessories/WindowAccessory";
 
 export type HomebridgeAccessory = PlatformAccessory<
   Partial<{
@@ -241,6 +242,9 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
           homebridgeAccessory,
           device as any
         );
+        break;
+      case "window":
+        new WindowAccessory(this, homebridgeAccessory, device as any);
         break;
 
       default:
