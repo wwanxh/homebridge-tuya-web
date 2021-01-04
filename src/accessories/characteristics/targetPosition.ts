@@ -8,8 +8,7 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { DeviceState } from "../../api/response";
-import delay from "../../helpers/delay";
+import { CoverState, DeviceState } from "../../api/response";
 
 export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.TargetPosition";
@@ -48,19 +47,16 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
   ): void {
     const value = (homekitValue as number) === 0 ? 0 : 1;
 
-    const data = { state: value === 0 ? 3 : 1 };
+    const data: DeviceState = {
+      target_cover_state: value === 0 ? CoverState.Closing : CoverState.Opening,
+      state: value === 0 ? CoverState.Closing : CoverState.Opening,
+    };
 
     this.accessory
       .setDeviceState("turnOnOff", { value }, data)
       .then(async () => {
         this.debug("[SET] %s", value);
         callback();
-
-        await delay(1000);
-        this.accessory.setTuyaCharacteristic(
-          this.accessory.platform.Characteristic.CurrentPosition,
-          data
-        );
       })
       .catch(this.accessory.handleError("SET", callback));
   }
@@ -69,11 +65,25 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
     if (!isNaN(Number(String(data?.state)))) {
       //State is a number and probably 1, 2 or 3
       const state = Number(data.state);
-      const stateValue = {
-        1: 100,
-        2: 50,
-        3: 0,
-      }[state];
+
+      let stateValue: 0 | 50 | 100;
+
+      switch (state) {
+        case CoverState.Opening:
+          stateValue = 100;
+          break;
+        case CoverState.Closing:
+          stateValue = 0;
+          break;
+        default:
+          if (data.target_cover_state === CoverState.Opening) {
+            stateValue = 100;
+          } else if (data.target_cover_state === CoverState.Stopped) {
+            stateValue = 50;
+          } else {
+            stateValue = 0;
+          }
+      }
 
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,

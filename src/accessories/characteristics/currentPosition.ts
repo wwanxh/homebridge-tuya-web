@@ -1,7 +1,7 @@
 import { CharacteristicGetCallback } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { DeviceState } from "../../api/response";
+import { CoverState, DeviceState } from "../../api/response";
 
 export class CurrentPositionCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.CurrentPosition";
@@ -29,11 +29,26 @@ export class CurrentPositionCharacteristic extends TuyaWebCharacteristic {
     if (!isNaN(Number(String(data?.state)))) {
       //State is a number and probably 1, 2 or 3
       const state = Number(data.state);
-      const stateValue = {
-        1: 100,
-        2: 50,
-        3: 0,
-      }[state];
+
+      let stateValue!: number;
+
+      switch (state) {
+        case CoverState.Opening:
+          stateValue = 50;
+          break;
+        case CoverState.Closing:
+          stateValue = 50;
+          break;
+        case CoverState.Stopped:
+        default:
+          if (data.target_cover_state === CoverState.Opening) {
+            stateValue = 100;
+          } else if (data.target_cover_state === CoverState.Stopped) {
+            stateValue = 50;
+          } else {
+            stateValue = 0;
+          }
+      }
 
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,

@@ -3,7 +3,7 @@ import { TuyaDeviceDefaults } from "../config";
 
 type TuyaBoolean = boolean | "true" | "false" | "True" | "False";
 
-export type DeviceState = Partial<{
+type TuyaProperties = Partial<{
   brightness: number | string;
   color: Partial<{ hue: string; saturation: string; brightness: string }>;
   color_mode: ColorModes;
@@ -20,9 +20,14 @@ export type DeviceState = Partial<{
   temperature: number | string;
 }>;
 
+type CustomProperties = Partial<{
+  target_cover_state: CoverState;
+}>;
+export type DeviceState = TuyaProperties & CustomProperties;
+
 export enum CoverState {
-  Open = 1,
-  Close = 2,
+  Opening = 1,
+  Closing = 2,
   Stopped = 3,
 }
 

@@ -37,7 +37,6 @@ type UpdateCallback = (
 
 export abstract class BaseAccessory {
   public readonly log: Logger;
-  private readonly cache = new Cache();
   private readonly serviceType: WithUUID<typeof Service>;
   public readonly service?: Service;
   public readonly deviceId: string;
@@ -73,6 +72,17 @@ export abstract class BaseAccessory {
   ) {
     this.log = platform.log;
     this.deviceId = deviceConfig.id;
+
+    if (!homebridgeAccessory.context.cache) {
+      homebridgeAccessory.context.cache = new Cache();
+    } else if (
+      homebridgeAccessory.context.cache.constructor.name === "Object"
+    ) {
+      homebridgeAccessory.context.cache = Object.assign(
+        new Cache(),
+        homebridgeAccessory.context.cache
+      );
+    }
 
     this.log.debug(
       "[%s] deviceConfig: %s",
@@ -159,6 +169,15 @@ export abstract class BaseAccessory {
     this.cleanupServices();
   }
 
+  private get cache(): Cache {
+    const cache = this.homebridgeAccessory.context.cache;
+    if (!cache) {
+      throw new Error("Device cache not initialized");
+    }
+    return cache;
+  }
+
+  /**
   private get defaultCharacteristics(): CharacteristicConstructor[] {
     return [
       this.platform.Characteristic.Manufacturer,
@@ -167,6 +186,7 @@ export abstract class BaseAccessory {
       this.platform.Characteristic.SerialNumber,
     ];
   }
+  */
 
   private initializeCharacteristics(): void {
     const deviceSupportedCharacteristics = [
@@ -397,7 +417,7 @@ export abstract class BaseAccessory {
   ): ErrorCallback {
     return (error) => {
       if (error instanceof DeviceOfflineError) {
-        this.error("[%s] %s", type, error.message);
+        this.error("%s", error.message);
       } else {
         this.error("[%s] %s", type, error.message);
       }

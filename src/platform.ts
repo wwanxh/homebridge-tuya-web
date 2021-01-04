@@ -26,8 +26,14 @@ import { TuyaWebApi } from "./api/service";
 import { TuyaPlatforms } from "./api/platform";
 import { GarageDoorAccessory } from "./accessories/GarageDoorAccessory";
 import { TemperatureSensorAccessory } from "./accessories/TemperatureSensorAccessory";
+import { Cache } from "./helpers/cache";
 
-export type HomebridgeAccessory = PlatformAccessory & {
+export type HomebridgeAccessory = PlatformAccessory<
+  Partial<{
+    cache: Cache;
+    deviceId: string;
+  }>
+> & {
   controller?: BaseAccessory;
 };
 

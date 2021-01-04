@@ -5,8 +5,7 @@ import {
 } from "homebridge";
 import { TuyaWebCharacteristic } from "./base";
 import { BaseAccessory } from "../BaseAccessory";
-import { DeviceState } from "../../api/response";
-import delay from "../../helpers/delay";
+import { CoverState, DeviceState } from "../../api/response";
 
 export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
   public static Title = "Characteristic.TargetDoorState";
@@ -40,19 +39,16 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
     const value =
       (homekitValue as number) === this.TargetDoorState.CLOSED ? 0 : 1;
 
-    const data = { state: value === 0 ? 3 : 1 };
+    const data: DeviceState = {
+      target_cover_state: value === 0 ? CoverState.Closing : CoverState.Opening,
+      state: value === 0 ? CoverState.Closing : CoverState.Opening,
+    };
 
     this.accessory
       .setDeviceState("turnOnOff", { value }, data)
       .then(async () => {
         this.debug("[SET] %s", value);
         callback();
-
-        await delay(1000);
-        this.accessory.setTuyaCharacteristic(
-          this.accessory.platform.Characteristic.CurrentDoorState,
-          data
-        );
       })
       .catch(this.accessory.handleError("SET", callback));
   }
@@ -61,11 +57,24 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
     if (!isNaN(Number(String(data?.state)))) {
       //State is a number and probably 1, 2 or 3
       const state = Number(data.state);
-      const stateValue = {
-        1: this.TargetDoorState.OPEN,
-        2: this.TargetDoorState.OPEN,
-        3: this.TargetDoorState.CLOSED,
-      }[state];
+
+      let stateValue: 0 | 1 = this.TargetDoorState.OPEN;
+
+      switch (state) {
+        case CoverState.Opening:
+          stateValue = this.TargetDoorState.OPEN;
+          break;
+        case CoverState.Closing:
+          stateValue = this.TargetDoorState.CLOSED;
+          break;
+        default:
+          if (!isNaN(Number(String(data?.target_cover_state)))) {
+            stateValue =
+              data.target_cover_state === CoverState.Closing
+                ? this.TargetDoorState.CLOSED
+                : this.TargetDoorState.OPEN;
+          }
+      }
 
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
