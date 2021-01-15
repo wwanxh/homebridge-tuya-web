@@ -76,9 +76,12 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
       return;
     }
 
-    this.error(
-      "Tried to set brightness but failed to parse data. \n %s",
-      inspect(data)
+    const error = new Error(
+      `Tried to set brightness but failed to parse data. \n ${inspect(data)}`
     );
+
+    this.error(error.message);
+
+    callback && callback(error);
   }
 }
