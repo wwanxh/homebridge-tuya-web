@@ -1,12 +1,10 @@
-<p style="text-align: center">
-  <img src="https://github.com/homebridge/branding/blob/master/logos/homebridge-wordmark-logo-horizontal.png?raw=true" height="200px" alt="Homebridge word-mark logo">  
-</p>
 <span style="text-align: center">
 
-# Homebridge Tuya Web
+# Tuya Web
 
 [![GitHub release](https://img.shields.io/github/release/milo526/homebridge-tuya-web.svg)](https://github.com/milo526/homebridge-tuya-web/releases)
 [![npm](https://img.shields.io/npm/dm/@milo526/homebridge-tuya-web.svg)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web)
+[![certified-by-hoobs](https://badgen.net/badge/hoobs/certified/yellow)](https://plugins.hoobs.org/plugin/@milo526/homebridge-tuya-web)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -19,15 +17,15 @@
 
 ## Overview
 
-Homebridge plugin for Tuya devices using a cloud Tuya Web Api.
+Hoobs and Homebridge plugin for Tuya devices using a cloud Tuya Web Api.
 
-This Homebridge plugin is based on the Home Assistant Tuya integration that implements a special Tuya Home Assistant API.
+This plugin is based on the Home Assistant Tuya integration that implements a special Tuya Home Assistant API.
 
 See [Home Assistant Tuya integration](https://www.home-assistant.io/components/tuya/) and [Tuyaha python library](https://github.com/PaulAnnekov/tuyaha).
 
 ## Features
 
-This Homebridge Plugin implements the following features:
+This plugin implements the following features:
 
 - Controlling Tuya Wi-Fi enabled devices form within HomeKit enabled iOS Apps.
 - Uses simple and lightweight Cloud Web API to control and get state update from Tuya devices. You will need a stable internet connection to control the devices.
@@ -77,7 +75,7 @@ The `options` has these properties:
 - `password` Required. The password for the account that is registered in the Android/iOS App.
 - `countryCode` Required. Your account [country code](https://www.countrycode.org/), e.g., 1 for the USA or 86 for China.
 - `platform` Optional. The App where you registered your account. `tuya` for Tuya Smart, `smart_life` for Smart Life, `jinvoo_smart` for Jinvoo Smart. Defaults to `tuya`.
-- `pollingInterval` Optional. Defaults to empty which entails no polling. The frequency in **seconds** that the plugin polls the cloud to get device updates. When you exclusively control the devices through Homebridge, you can set this to a low frequency (high interval number, e.g. 1800 = 30 minutes).
+- `pollingInterval` Optional. Defaults to empty which entails no polling. The frequency in **seconds** that the plugin polls the cloud to get device updates. When you exclusively control the devices through the plugin, you can set this to a low frequency (high interval number, e.g. 1800 = 30 minutes).
 
 > :warning: Sign-in with Apple, Google, Facebook or any other provider is **not** supported and, due to limitations, will probably never be supported :warning:  
 > Please make sure your account is created using a plain old username and password combination.
@@ -104,7 +102,7 @@ It is possible to override values from the default. As of now, only overruling d
 
 The `defaults` has these properties:
 
-- `id` The name or id for the device that is registered in the Android/iOS App. When matching on ID please provide the `Tuya ID` as shown during Homebridge boot.
+- `id` The name or id for the device that is registered in the Android/iOS App. When matching on ID please provide the `Tuya ID` as shown during plugin boot.
 - `device_type` The `device_type` to be overruled. This can be useful for dimmers that are reported as `light` by the Tuya API and don't support hue and saturation or for outlets that are reported as `switch`.
 
 > Note: After overriding the device type, it might appear duplicated in both HomeBridge (Accessories Tab) and the Home App. To solve this issue, go to the Homebridge settings (top right corner) and remove the device using the `Remove Single Cached Accessory` option.
@@ -180,7 +178,7 @@ To explicitly disable scene support set the `scenes` key to `false`.
 
 # Supported Device Types
 
-There is currently support for the following device types within this Homebridge plugin:
+There is currently support for the following device types within this plugin:
 
 - **Climate** - The plugin allows reading and setting the desired temperature for certain Tuya thermostats.
 - **Cover** - The plugin allows opening and closing window coverings. If preferred, the device type can be set to `garage` to expose the cover device as a garage door.
