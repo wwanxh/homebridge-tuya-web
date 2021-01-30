@@ -15,7 +15,7 @@ import { TuyaDevice } from "../api/response";
 export class ClimateAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
-    homebridgeAccessory: HomebridgeAccessory,
+    homebridgeAccessory: HomebridgeAccessory | undefined,
     deviceConfig: TuyaDevice
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.THERMOSTAT);

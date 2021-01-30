@@ -2,10 +2,13 @@
 
 # Tuya Web
 
-[![GitHub release](https://img.shields.io/github/release/milo526/homebridge-tuya-web.svg)](https://github.com/milo526/homebridge-tuya-web/releases)
-[![npm](https://img.shields.io/npm/dm/@milo526/homebridge-tuya-web.svg)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web)
-[![certified-by-hoobs](https://badgen.net/badge/hoobs/certified/yellow)](https://plugins.hoobs.org/plugin/@milo526/homebridge-tuya-web)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+[![certified-by-hoobs](https://badgen.net/badge/hoobs/certified/yellow)](https://plugins.hoobs.org/plugin/@milo526/homebridge-tuya-web)
+
+[![npm](https://img.shields.io/npm/v/@milo526/homebridge-tuya-web/latest?label=latest)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web)
+[![npm](https://img.shields.io/npm/v/@milo526/homebridge-tuya-web/next?label=next)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web/v/next)
+[![npm](https://img.shields.io/npm/dt/@milo526/homebridge-tuya-web)](https://www.npmjs.com/package/@milo526/homebridge-tuya-web)
+[![GitHub release](https://img.shields.io/github/release/milo526/homebridge-tuya-web.svg)](https://github.com/milo526/homebridge-tuya-web/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [![Homebridge Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=discord)](https://discord.gg/hZubhrz)

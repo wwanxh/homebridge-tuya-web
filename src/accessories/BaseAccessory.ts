@@ -65,25 +65,15 @@ export abstract class BaseAccessory {
       .filter((asc) => asc.isSupportedByAccessory(this));
   }
 
+  public readonly homebridgeAccessory: HomebridgeAccessory;
   constructor(
     public readonly platform: TuyaWebPlatform,
-    public readonly homebridgeAccessory: HomebridgeAccessory,
+    homebridgeAccessory: HomebridgeAccessory | undefined,
     public readonly deviceConfig: TuyaDevice,
     private readonly categoryType: Categories
   ) {
     this.log = platform.log;
     this.deviceId = deviceConfig.id;
-
-    if (!homebridgeAccessory.context.cache) {
-      homebridgeAccessory.context.cache = new Cache();
-    } else if (
-      homebridgeAccessory.context.cache.constructor.name === "Object"
-    ) {
-      homebridgeAccessory.context.cache = Object.assign(
-        new Cache(),
-        homebridgeAccessory.context.cache
-      );
-    }
 
     this.log.debug(
       "[%s] deviceConfig: %s",
@@ -128,46 +118,59 @@ export abstract class BaseAccessory {
     }
 
     // Retrieve existing of create new Bridged Accessory
-    if (this.homebridgeAccessory) {
-      this.homebridgeAccessory.controller = this;
-      if (!this.homebridgeAccessory.context.deviceId) {
-        this.homebridgeAccessory.context.deviceId = this.deviceConfig.id;
+    if (homebridgeAccessory) {
+      homebridgeAccessory.controller = this;
+      if (!homebridgeAccessory.context.deviceId) {
+        homebridgeAccessory.context.deviceId = this.deviceConfig.id;
       }
       this.log.info(
         "Existing Accessory found [Name: %s] [Tuya ID: %s] [HomeBridge ID: %s]",
-        this.homebridgeAccessory.displayName,
-        this.homebridgeAccessory.context.deviceId,
-        this.homebridgeAccessory.UUID
+        homebridgeAccessory.displayName,
+        homebridgeAccessory.context.deviceId,
+        homebridgeAccessory.UUID
       );
-      this.homebridgeAccessory.displayName = this.deviceConfig.name;
+      homebridgeAccessory.displayName = this.deviceConfig.name;
     } else {
-      this.homebridgeAccessory = new this.platform.platformAccessory(
+      homebridgeAccessory = new this.platform.platformAccessory(
         this.deviceConfig.name,
         this.platform.generateUUID(this.deviceConfig.id),
         categoryType
       );
-      this.homebridgeAccessory.context.deviceId = this.deviceConfig.id;
-      this.homebridgeAccessory.controller = this;
+      homebridgeAccessory.context.deviceId = this.deviceConfig.id;
+      homebridgeAccessory.controller = this;
       this.log.info(
         "Created new Accessory [Name: %s] [Tuya ID: %s] [HomeBridge ID: %s]",
-        this.homebridgeAccessory.displayName,
-        this.homebridgeAccessory.context.deviceId,
-        this.homebridgeAccessory.UUID
+        homebridgeAccessory.displayName,
+        homebridgeAccessory.context.deviceId,
+        homebridgeAccessory.UUID
       );
-      this.platform.registerPlatformAccessory(this.homebridgeAccessory);
+      this.platform.registerPlatformAccessory(homebridgeAccessory);
+    }
+
+    if (!homebridgeAccessory.context.cache) {
+      homebridgeAccessory.context.cache = new Cache();
+    } else if (
+      homebridgeAccessory.context.cache.constructor.name === "Object"
+    ) {
+      homebridgeAccessory.context.cache = Object.assign(
+        new Cache(),
+        homebridgeAccessory.context.cache
+      );
     }
 
     // Create service
-    this.service = this.homebridgeAccessory.getService(this.serviceType);
+    this.service = homebridgeAccessory.getService(this.serviceType);
     if (!this.service) {
       this.log.debug("Creating New Service %s", this.deviceConfig.id);
-      this.service = this.homebridgeAccessory.addService(
+      this.service = homebridgeAccessory.addService(
         this.serviceType,
         this.deviceConfig.name
       );
     }
 
-    this.homebridgeAccessory.on("identify", this.onIdentify.bind(this));
+    homebridgeAccessory.on("identify", this.onIdentify.bind(this));
+
+    this.homebridgeAccessory = homebridgeAccessory;
 
     this.initializeCharacteristics();
     this.cleanupServices();

@@ -13,7 +13,7 @@ import { HoldPositionCharacteristic } from "./characteristics/holdPosition";
 export class WindowAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
-    homebridgeAccessory: HomebridgeAccessory,
+    homebridgeAccessory: HomebridgeAccessory | undefined,
     deviceConfig: TuyaDevice
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.WINDOW);

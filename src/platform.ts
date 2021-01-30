@@ -49,7 +49,6 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     .Characteristic;
 
   // this is used to track restored cached accessories
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public readonly accessories: Map<string, HomebridgeAccessory> = new Map();
 
   // Cloud polling interval in seconds
@@ -110,7 +109,7 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     // Dynamic Platform plugins should only register new accessories after this event was fired,
     // in order to ensure they weren't added to homebridge already. This event can also be used
     // to start discovery of new accessories.
-    this.api.on("didFinishLaunching", async () => this.postLaunchSetup());
+    this.api.on("didFinishLaunching", this.postLaunchSetup.bind(this));
   }
 
   private async postLaunchSetup(): Promise<void> {
@@ -204,47 +203,42 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
   private addAccessory(device: TuyaDevice): void {
     const deviceType: TuyaDeviceType = device.dev_type || "switch";
     const uuid = this.api.hap.uuid.generate(device.id);
-    const homebridgeAccessory = this.accessories.get(uuid)!;
+    const homebridgeAccessory = this.accessories.get(uuid);
 
     // Construct new accessory
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     switch (deviceType) {
       case "cover":
-        new CoverAccessory(this, homebridgeAccessory, device as any);
+        new CoverAccessory(this, homebridgeAccessory, device);
         break;
       case "climate":
-        new ClimateAccessory(this, homebridgeAccessory, device as any);
+        new ClimateAccessory(this, homebridgeAccessory, device);
         break;
       case "dimmer":
-        new DimmerAccessory(this, homebridgeAccessory, device as any);
+        new DimmerAccessory(this, homebridgeAccessory, device);
         break;
       case "fan":
-        new FanAccessory(this, homebridgeAccessory, device as any);
+        new FanAccessory(this, homebridgeAccessory, device);
         break;
       case "garage":
-        new GarageDoorAccessory(this, homebridgeAccessory, device as any);
+        new GarageDoorAccessory(this, homebridgeAccessory, device);
         break;
       case "light":
-        new LightAccessory(this, homebridgeAccessory, device as any);
+        new LightAccessory(this, homebridgeAccessory, device);
         break;
       case "outlet":
-        new OutletAccessory(this, homebridgeAccessory, device as any);
+        new OutletAccessory(this, homebridgeAccessory, device);
         break;
       case "scene":
-        new SceneAccessory(this, homebridgeAccessory, device as any);
+        new SceneAccessory(this, homebridgeAccessory, device);
         break;
       case "switch":
-        new SwitchAccessory(this, homebridgeAccessory, device as any);
+        new SwitchAccessory(this, homebridgeAccessory, device);
         break;
       case "temperature_sensor":
-        new TemperatureSensorAccessory(
-          this,
-          homebridgeAccessory,
-          device as any
-        );
+        new TemperatureSensorAccessory(this, homebridgeAccessory, device);
         break;
       case "window":
-        new WindowAccessory(this, homebridgeAccessory, device as any);
+        new WindowAccessory(this, homebridgeAccessory, device);
         break;
 
       default:
@@ -261,7 +255,6 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         ]);
         break;
     }
-    /* eslint-enable @typescript-eslint/no-explicit-any */
   }
 
   private filterDeviceList(devices: TuyaDevice[] | undefined): TuyaDevice[] {
