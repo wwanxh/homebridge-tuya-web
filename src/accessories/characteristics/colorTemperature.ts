@@ -22,10 +22,7 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
     return accessory.deviceConfig.data.color_temp !== undefined;
   }
 
-  private rangeMapper = MapRange.from(1000000 / 140, 1000000 / 500).to(
-    10000,
-    1000
-  );
+  private rangeMapper = MapRange.from(140, 500).to(10000, 1000);
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
     this.accessory
@@ -49,14 +46,10 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
     }
 
     // Set device state in Tuya Web API
-    const value = Math.round(this.rangeMapper.map(1000000 / homekitValue));
+    const value = Math.round(this.rangeMapper.map(homekitValue));
 
     this.accessory
-      .setDeviceState(
-        "colorTemperatureSet",
-        { value },
-        { color_temp: homekitValue }
-      )
+      .setDeviceState("colorTemperatureSet", { value }, { color_temp: value })
       .then(() => {
         this.debug("[SET] %s %s", homekitValue, value);
         callback();
@@ -67,7 +60,7 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (data?.color_temp !== undefined) {
       const homekitColorTemp = Math.round(
-        this.rangeMapper.inverseMap(1000000 / Number(data.color_temp))
+        this.rangeMapper.inverseMap(Number(data.color_temp))
       );
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
