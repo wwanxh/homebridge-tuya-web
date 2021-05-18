@@ -350,6 +350,12 @@ export abstract class BaseAccessory {
     return this.debouncedDeviceStateRequestPromise.promise;
   }
 
+  /**
+   * Caches the remote state
+   * @param method
+   * @param payload
+   * @param cache tuya value to store in the cache
+   */
   public async setDeviceState<Method extends TuyaApiMethod, T>(
     method: Method,
     payload: TuyaApiPayload<Method>,
