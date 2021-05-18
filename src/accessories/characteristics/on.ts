@@ -55,7 +55,8 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
       );
       callback && callback(null, stateValue);
     } else {
-      callback && callback(new Error("Could not get state from data"));
+      callback &&
+        callback(new Error("Could not find required property 'state'"));
     }
   }
 }

@@ -15,6 +15,8 @@ export type TuyaDeviceDefaults = {
   cover_characteristics: "Stop"[];
   min_brightness: string | number;
   max_brightness: string | number;
+  min_kelvin: string | number;
+  max_kelvin: string | number;
 };
 
 type Config = {
