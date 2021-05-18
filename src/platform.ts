@@ -45,8 +45,8 @@ export type HomebridgeAccessory = PlatformAccessory<
  */
 export class TuyaWebPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap
-    .Characteristic;
+  public readonly Characteristic: typeof Characteristic =
+    this.api.hap.Characteristic;
 
   // this is used to track restored cached accessories
   public readonly accessories: Map<string, HomebridgeAccessory> = new Map();
@@ -343,7 +343,8 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
         continue;
       }
 
-      configOverwrite.device_type = configOverwrite.device_type.toLowerCase() as TuyaDeviceType;
+      configOverwrite.device_type =
+        configOverwrite.device_type.toLowerCase() as TuyaDeviceType;
 
       const device = devices.find(
         (device) =>

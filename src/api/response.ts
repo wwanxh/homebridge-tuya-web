@@ -101,22 +101,21 @@ export type TuyaApiMethod =
   | "temperatureSet"
   | "turnOnOff"
   | "windSpeedSet";
-export type TuyaApiPayload<
-  Method extends TuyaApiMethod
-> = Method extends "brightnessSet"
-  ? { value: number }
-  : Method extends "colorSet"
-  ? { color: { hue: number; saturation: number; brightness: number } }
-  : Method extends "colorTemperatureSet"
-  ? { value: number }
-  : Method extends "modeSet"
-  ? { value: ClimateMode }
-  : Method extends "startStop"
-  ? { value: 0 }
-  : Method extends "temperatureSet"
-  ? { value: number }
-  : Method extends "turnOnOff"
-  ? { value: 0 | 1 }
-  : Method extends "windSpeedSet"
-  ? { value: number }
-  : never;
+export type TuyaApiPayload<Method extends TuyaApiMethod> =
+  Method extends "brightnessSet"
+    ? { value: number }
+    : Method extends "colorSet"
+    ? { color: { hue: number; saturation: number; brightness: number } }
+    : Method extends "colorTemperatureSet"
+    ? { value: number }
+    : Method extends "modeSet"
+    ? { value: ClimateMode }
+    : Method extends "startStop"
+    ? { value: 0 }
+    : Method extends "temperatureSet"
+    ? { value: number }
+    : Method extends "turnOnOff"
+    ? { value: 0 | 1 }
+    : Method extends "windSpeedSet"
+    ? { value: number }
+    : never;
