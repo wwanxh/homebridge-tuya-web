@@ -138,9 +138,11 @@ export class TuyaWebPlatform implements DynamicPlatformPlugin {
     } catch (e) {
       if (e instanceof AuthenticationError) {
         this.log.error("Authentication error: %s", e.message);
-      } else {
+      } else if (e instanceof Error) {
         this.log.error(e.message);
-        this.log.debug(e);
+        if (e.stack) {
+          this.log.debug(e.stack);
+        }
       }
     }
   }

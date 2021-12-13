@@ -171,7 +171,7 @@ export class TuyaWebApi {
       data = (
         await axios({
           headers: {
-            "Content-Length": contentLength,
+            "Content-Length": `${contentLength}`,
             "Content-Type": "application/x-www-form-urlencoded",
           },
           url: "/homeassistant/auth.do",
