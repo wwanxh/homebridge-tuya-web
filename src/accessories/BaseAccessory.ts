@@ -302,7 +302,7 @@ export abstract class BaseAccessory {
       this.debug("Resolving resolveDeviceStateRequest from cache");
 
       if (!TuyaBoolean(cached.online)) {
-        promise.reject(new DeviceOfflineError());
+        return promise.reject(new DeviceOfflineError());
       }
 
       return promise.resolve(cached);
@@ -315,17 +315,17 @@ export abstract class BaseAccessory {
       this.cache.set(data);
 
       if (!TuyaBoolean(data.online)) {
-        promise.reject(new DeviceOfflineError());
+        return promise.reject(new DeviceOfflineError());
       }
 
-      promise.resolve(data);
+      return promise.resolve(data);
     } catch (error) {
       if (error instanceof RatelimitError) {
         this.debug("Renewing cache due to RateLimitError");
         const data = this.cache.get(true);
 
         if (!TuyaBoolean(data?.online)) {
-          promise.reject(new DeviceOfflineError());
+          return promise.reject(new DeviceOfflineError());
         }
 
         if (data) {
@@ -333,7 +333,12 @@ export abstract class BaseAccessory {
           return promise.resolve(data);
         }
       }
-      promise.reject(error);
+
+      if (error instanceof Error) {
+        return promise.reject(error);
+      } else {
+        return promise.reject(new Error(JSON.stringify(error)));
+      }
     }
   }
 
@@ -350,6 +355,12 @@ export abstract class BaseAccessory {
     return this.debouncedDeviceStateRequestPromise.promise;
   }
 
+  /**
+   * Caches the remote state
+   * @param method
+   * @param payload
+   * @param cache tuya value to store in the cache
+   */
   public async setDeviceState<Method extends TuyaApiMethod, T>(
     method: Method,
     payload: TuyaApiPayload<Method>,

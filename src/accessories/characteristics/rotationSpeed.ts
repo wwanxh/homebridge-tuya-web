@@ -18,10 +18,10 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
     return accessory.platform.Characteristic.RotationSpeed;
   }
 
-  public range = MapRange.from(
+  public range = MapRange.tuya(1, this.maxSpeedLevel).homeKit(
     this.minStep,
     this.maxSpeedLevel * this.minStep
-  ).to(1, this.maxSpeedLevel);
+  );
 
   public setProps(char?: Characteristic): Characteristic | undefined {
     return char?.setProps({
@@ -64,7 +64,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
     callback: CharacteristicSetCallback
   ): void {
     // Set device state in Tuya Web API
-    let value = this.range.map(Number(homekitValue));
+    let value = this.range.homekitToTuya(Number(homekitValue));
     // Set value to 1 if value is too small
     value = value < 1 ? 1 : value;
     // Set value to minSpeedLevel if value is too large
@@ -81,7 +81,7 @@ export class RotationSpeedCharacteristic extends TuyaWebCharacteristic {
 
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     if (data?.speed !== undefined) {
-      const speed = this.range.inverseMap(Number(data.speed));
+      const speed = this.range.tuyaToHomekit(Number(data.speed));
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         speed,

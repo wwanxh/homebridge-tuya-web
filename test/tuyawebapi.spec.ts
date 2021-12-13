@@ -1,4 +1,4 @@
-import { TuyaWebApi } from "../src/TuyaWebApi";
+import { TuyaWebApi } from "../src/api/service";
 
 import { config } from "./environment";
 import assert from "assert";
@@ -24,7 +24,11 @@ describe("TuyaWebApi", () => {
         .getOrRefreshToken()
         .then((session) => {
           api.session = session || null;
-          assert.notEqual(session.accessToken, null, "No valid access token.");
+          assert.notStrictEqual(
+            session.accessToken,
+            null,
+            "No valid access token."
+          );
           done();
         })
         .catch((error) => {
@@ -33,7 +37,7 @@ describe("TuyaWebApi", () => {
     });
 
     it("should have the area base url set to EU server", (done) => {
-      assert.equal(
+      assert.strictEqual(
         api.session.areaBaseUrl,
         "https://px1.tuyaeu.com",
         "Area Base URL is not set."
@@ -47,7 +51,7 @@ describe("TuyaWebApi", () => {
       api
         .discoverDevices()
         .then((devices) => {
-          assert.notEqual(devices.length, 0, "No devices found");
+          assert.notStrictEqual(devices.length, 0, "No devices found");
           done();
         })
         .catch((error) => {
@@ -62,7 +66,7 @@ describe("TuyaWebApi", () => {
       api
         .getDeviceState(deviceId)
         .then((data) => {
-          assert.notEqual(data.state, null, "No device state received");
+          assert.notStrictEqual(data.state, null, "No device state received");
           done();
         })
         .catch((error) => {

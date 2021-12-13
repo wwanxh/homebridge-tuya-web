@@ -13,6 +13,10 @@ export type TuyaDeviceDefaults = {
   fan_characteristics: "Speed"[];
   light_characteristics: ("Brightness" | "Color" | "Color Temperature")[];
   cover_characteristics: "Stop"[];
+  min_brightness: string | number;
+  max_brightness: string | number;
+  min_kelvin: string | number;
+  max_kelvin: string | number;
 };
 
 type Config = {

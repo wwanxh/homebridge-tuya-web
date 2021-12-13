@@ -61,13 +61,31 @@ export abstract class TuyaWebCharacteristic<
     this.log(LogLevel.ERROR, message, ...args);
   }
 
+  /**
+   * Getter tuya HomeKit;
+   * Should provide HomeKit compatible data homeKit callback
+   * @param callback
+   */
   public getRemoteValue?(callback: CharacteristicGetCallback): void;
 
+  /**
+   * Setter homeKit HomeKit
+   * Called when value is changed in HomeKit.
+   * Must update remote value
+   * Must call callback after completion
+   * @param homekitValue
+   * @param callback
+   */
   public setRemoteValue?(
     homekitValue: CharacteristicValue,
     callback: CharacteristicSetCallback
   ): void;
 
+  /**
+   * Updates the cached value for the device.
+   * @param data
+   * @param callback
+   */
   public updateValue?(
     data?: Accessory["deviceConfig"]["data"],
     callback?: CharacteristicGetCallback

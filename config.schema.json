@@ -147,6 +147,34 @@
               "placeholder": "35.0",
               "required": false
             },
+            "min_brightness": {
+              "title": "Minimal Brightness",
+              "type": "string",
+              "pattern": "^-?\\d+$",
+              "description": "The brightness value that Tuya returns when your light is off.",
+              "required": false
+            },
+            "max_brightness": {
+              "title": "Maximal Brightness",
+              "type": "string",
+              "pattern": "^-?\\d+$",
+              "description": "The brightness value that Tuya returns when your light is at its brightest.",
+              "required": false
+            },
+            "min_kelvin": {
+              "title": "Minimal Kelvin",
+              "type": "string",
+              "pattern": "^-?\\d+$",
+              "description": "The kelvin value that Tuya returns when your light is at its warmest (most red).",
+              "required": false
+            },
+            "max_kelvin": {
+              "title": "Maximal Brightness",
+              "type": "string",
+              "pattern": "^-?\\d+$",
+              "description": "The kelvin value that Tuya returns when your light is at its coolest (most blue).",
+              "required": false
+            },
             "current_temperature_factor": {
               "title": "Temperature Factor",
               "type": "string",
@@ -297,6 +325,30 @@
               "key": "defaults[].max_temper",
               "condition": {
                 "functionBody": "return (model.defaults[arrayIndices].device_type == 'climate')"
+              }
+            },
+            {
+              "key": "defaults[].min_brightness",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Brightness'))"
+              }
+            },
+            {
+              "key": "defaults[].max_brightness",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Brightness'))"
+              }
+            },
+            {
+              "key": "defaults[].min_kelvin",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Color Temperature'))"
+              }
+            },
+            {
+              "key": "defaults[].max_kelvin",
+              "condition": {
+                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Color Temperature'))"
               }
             },
             {
