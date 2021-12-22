@@ -330,13 +330,13 @@
             {
               "key": "defaults[].min_brightness",
               "condition": {
-                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Brightness'))"
+                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Brightness') || model.defaults[arrayIndices].dimmer_characteristics?.includes('Brightness'))"
               }
             },
             {
               "key": "defaults[].max_brightness",
               "condition": {
-                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Brightness'))"
+                "functionBody": "return (model.defaults[arrayIndices].light_characteristics?.includes('Brightness') || model.defaults[arrayIndices].dimmer_characteristics?.includes('Brightness'))"
               }
             },
             {
