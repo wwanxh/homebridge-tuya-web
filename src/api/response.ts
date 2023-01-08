@@ -44,7 +44,7 @@ export const TuyaDeviceTypes = [
   "temperature_sensor",
   "window",
 ] as const;
-export type TuyaDeviceType = typeof TuyaDeviceTypes[number];
+export type TuyaDeviceType = (typeof TuyaDeviceTypes)[number];
 
 export const HomeAssistantDeviceTypes = [
   "climate",
@@ -56,7 +56,7 @@ export const HomeAssistantDeviceTypes = [
   "scene",
   "switch",
 ] as const;
-export type HomeAssistantDeviceType = typeof HomeAssistantDeviceTypes[number];
+export type HomeAssistantDeviceType = (typeof HomeAssistantDeviceTypes)[number];
 
 export type TuyaDevice = {
   data: DeviceState;
