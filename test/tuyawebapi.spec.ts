@@ -7,7 +7,7 @@ import { before, describe, it } from "mocha";
 // Global variables used in the tests
 
 describe("TuyaWebApi", () => {
-  let api;
+  let api: TuyaWebApi;
 
   before(() => {
     api = new TuyaWebApi(
@@ -22,10 +22,9 @@ describe("TuyaWebApi", () => {
     it("should get an access token from the web api", (done) => {
       api
         .getOrRefreshToken()
-        .then((session) => {
-          api.session = session || null;
+        .then(() => {
           assert.notStrictEqual(
-            session.accessToken,
+            api["session"]?.accessToken,
             null,
             "No valid access token."
           );
@@ -38,7 +37,7 @@ describe("TuyaWebApi", () => {
 
     it("should have the area base url set to EU server", (done) => {
       assert.strictEqual(
-        api.session.areaBaseUrl,
+        api["session"]?.areaBaseUrl,
         "https://px1.tuyaeu.com",
         "Area Base URL is not set."
       );
@@ -51,7 +50,7 @@ describe("TuyaWebApi", () => {
       api
         .discoverDevices()
         .then((devices) => {
-          assert.notStrictEqual(devices.length, 0, "No devices found");
+          assert.notStrictEqual((devices || []).length, 0, "No devices found");
           done();
         })
         .catch((error) => {
