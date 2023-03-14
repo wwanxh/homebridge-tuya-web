@@ -14,7 +14,6 @@
 [![Homebridge Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=discord)](https://discord.gg/hZubhrz)
 [![GitHub issues](https://img.shields.io/github/issues/milo526/homebridge-tuya-web)](https://github.com/milo526/homebridge-tuya-web/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/milo526/homebridge-tuya-web)](https://github.com/milo526/homebridge-tuya-web/pulls)
-[![Contribute](https://img.shields.io/badge/contribute-donate%20a%20coffee-brightgreen)](https://paypal.me/mCesar)
 
 </span>
 

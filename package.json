@@ -35,10 +35,6 @@
     "type": "git",
     "url": "https://github.com/milo526/homebridge-tuya-web"
   },
-  "funding": {
-    "type": "github",
-    "url": "https://github.com/sponsors/milo526"
-  },
   "bugs": {
     "url": "https://github.com/milo526/homebridge-tuya-web/issues"
   },
