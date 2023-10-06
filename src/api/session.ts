@@ -37,16 +37,17 @@ export class Session {
   }
 
   public set areaCode(newAreaCode: string) {
-    if (!isAreaCode(newAreaCode)) {
-      throw new Error(
-        `Invalid area code ${newAreaCode}, must be one of ${Object.keys(
-          AreaCodeLookup,
-        ).join(", ")}`,
-      );
-    }
+    const areaCodeLookup = {
+      AY: "https://px1.tuyacn.com",
+      EU: "https://px1.tuyaeu.com",
+      US: "https://px1.tuyaus.com",
+    };
 
     this._areaCode = newAreaCode;
-    this._areaBaseUrl = AreaCodeLookup[newAreaCode] || AreaCodeLookup.US;
+    this._areaBaseUrl =
+      newAreaCode in areaCodeLookup
+        ? areaCodeLookup[newAreaCode as keyof typeof areaCodeLookup]
+        : areaCodeLookup.US;
   }
 
   public resetToken(
@@ -74,16 +75,4 @@ export class Session {
   private static getCurrentEpoch(): number {
     return Math.round(new Date().getTime() / 1000);
   }
-}
-
-const AreaCodeLookup = {
-  AY: "https://px1.tuyacn.com",
-  EU: "https://px1.tuyaeu.com",
-  US: "https://px1.tuyaus.com",
-};
-
-type AreaCode = keyof typeof AreaCodeLookup;
-
-function isAreaCode(areaCode: string): areaCode is AreaCode {
-  return areaCode in AreaCodeLookup;
 }
