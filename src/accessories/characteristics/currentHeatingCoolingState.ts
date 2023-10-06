@@ -52,7 +52,7 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         this.CurrentHeatingCoolingState.OFF,
-        !callback
+        !callback,
       );
       this.debug("[UPDATE] %S", "OFF");
       callback && callback(null, this.CurrentHeatingCoolingState.OFF);
@@ -64,15 +64,15 @@ export class CurrentHeatingCoolingStateCharacteristic extends TuyaWebCharacteris
       wind: this.CurrentHeatingCoolingState.COOL,
       hot: this.CurrentHeatingCoolingState.HEAT,
       cold: this.CurrentHeatingCoolingState.COOL,
-    }[data?.mode || "hot"];
+    }[data?.mode ?? "hot"];
     this.debug(
       "[UPDATE] %s",
-      mode === this.CurrentHeatingCoolingState.HEAT ? "HEAT" : "COOL"
+      mode === this.CurrentHeatingCoolingState.HEAT ? "HEAT" : "COOL",
     );
     this.accessory.setCharacteristic(
       this.homekitCharacteristic,
       mode,
-      !callback
+      !callback,
     );
     callback && callback(null, mode);
   }

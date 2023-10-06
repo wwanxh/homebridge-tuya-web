@@ -3,12 +3,12 @@ export class MapRange {
     public readonly tuyaStart: number,
     public readonly tuyaEnd: number,
     public readonly homekitStart: number,
-    public readonly homekitEnd: number
+    public readonly homekitEnd: number,
   ) {}
 
   static tuya(
-    start,
-    end
+    start: number,
+    end: number,
   ): { homeKit: (start: number, end: number) => MapRange } {
     return {
       homeKit: (toStart, toEnd) => {

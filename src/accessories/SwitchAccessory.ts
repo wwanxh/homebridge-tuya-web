@@ -8,7 +8,7 @@ export class SwitchAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
     homebridgeAccessory: HomebridgeAccessory | undefined,
-    deviceConfig: TuyaDevice
+    deviceConfig: TuyaDevice,
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.SWITCH);
   }

@@ -17,7 +17,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
     return accessory.platform.Characteristic.Brightness;
   }
 
-  public static isSupportedByAccessory(accessory): boolean {
+  public static isSupportedByAccessory(accessory: BaseAccessory): boolean {
     const configData = accessory.deviceConfig.data;
     return (
       configData.brightness !== undefined ||
@@ -57,7 +57,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
     this.accessory
       .getDeviceState()
       .then((data) => {
-        this.debug("[GET] %s", data?.brightness || data?.color?.brightness);
+        this.debug("[GET] %s", data?.brightness ?? data?.color?.brightness);
         this.updateValue(data, callback);
       })
       .catch(this.accessory.handleError("GET", callback));
@@ -65,7 +65,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
 
   public setRemoteValue(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void {
     const value = this.rangeMapper.homekitToTuya(Number(homekitValue));
 
@@ -74,8 +74,8 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
         "brightnessSet",
         { value },
         this.usesColorBrightness
-          ? { color: { brightness: value } }
-          : { brightness: value }
+          ? { color: { brightness: String(value) } }
+          : { brightness: value },
       )
       .then(() => {
         this.debug("[SET] %s", value);
@@ -86,7 +86,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
 
   updateValue(data: DeviceState, callback?: CharacteristicGetCallback): void {
     const tuyaValue = Number(
-      this.usesColorBrightness ? data.color?.brightness : data.brightness
+      this.usesColorBrightness ? data.color?.brightness : data.brightness,
     );
     const homekitValue = this.rangeMapper.tuyaToHomekit(tuyaValue);
 
@@ -96,7 +96,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
           "exceeds configured maximum Tuya value (%s). Please update your configuration!",
         homekitValue,
         tuyaValue,
-        this.rangeMapper.tuyaEnd
+        this.rangeMapper.tuyaEnd,
       );
     } else if (homekitValue < 0) {
       this.warn(
@@ -104,7 +104,7 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
           "is lower than configured minimum Tuya value (%s). Please update your configuration!",
         homekitValue,
         tuyaValue,
-        this.rangeMapper.tuyaStart
+        this.rangeMapper.tuyaStart,
       );
     }
 
@@ -112,14 +112,14 @@ export class BrightnessCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         homekitValue,
-        !callback
+        !callback,
       );
       callback && callback(null, homekitValue);
       return;
     }
 
     const error = new Error(
-      `Tried to set brightness but failed to parse data. \n ${inspect(data)}`
+      `Tried to set brightness but failed to parse data. \n ${inspect(data)}`,
     );
 
     this.error(error.message);

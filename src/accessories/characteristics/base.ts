@@ -8,11 +8,11 @@ import {
 } from "homebridge";
 
 export abstract class TuyaWebCharacteristic<
-  Accessory extends BaseAccessory = BaseAccessory
+  Accessory extends BaseAccessory = BaseAccessory,
 > {
   public static Title: string;
   public static HomekitCharacteristic: (
-    accessory: BaseAccessory
+    accessory: BaseAccessory,
   ) => CharacteristicConstructor;
 
   public setProps(characteristic?: Characteristic): Characteristic | undefined {
@@ -24,7 +24,7 @@ export abstract class TuyaWebCharacteristic<
   }
 
   private get staticInstance(): typeof TuyaWebCharacteristic {
-    return <typeof TuyaWebCharacteristic>this.constructor;
+    return this.constructor as typeof TuyaWebCharacteristic;
   }
 
   public get title(): string {
@@ -41,7 +41,7 @@ export abstract class TuyaWebCharacteristic<
       `[%s] %s - ${message}`,
       this.accessory.name,
       this.title,
-      ...args
+      ...args,
     );
   }
 
@@ -78,7 +78,7 @@ export abstract class TuyaWebCharacteristic<
    */
   public setRemoteValue?(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void;
 
   /**
@@ -88,12 +88,12 @@ export abstract class TuyaWebCharacteristic<
    */
   public updateValue?(
     data?: Accessory["deviceConfig"]["data"],
-    callback?: CharacteristicGetCallback
+    callback?: CharacteristicGetCallback,
   ): void;
 
   private enable(): void {
     const char = this.setProps(
-      this.accessory.service?.getCharacteristic(this.homekitCharacteristic)
+      this.accessory.service?.getCharacteristic(this.homekitCharacteristic),
     );
 
     if (char) {
@@ -110,7 +110,7 @@ export abstract class TuyaWebCharacteristic<
     if (this.updateValue) {
       this.accessory.addUpdateCallback(
         this.homekitCharacteristic,
-        this.updateValue.bind(this)
+        this.updateValue.bind(this),
       );
     }
   }

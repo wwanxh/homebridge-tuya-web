@@ -44,7 +44,7 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
 
   public setRemoteValue(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void {
     const value = (homekitValue as number) === 0 ? 0 : 1;
 
@@ -55,7 +55,7 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
 
     this.accessory
       .setDeviceState("turnOnOff", { value }, data)
-      .then(async () => {
+      .then(() => {
         this.debug("[SET] %s", value);
         callback();
       })
@@ -89,7 +89,7 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else if (["true", "false"].includes(String(data?.state).toLowerCase())) {
@@ -97,7 +97,7 @@ export class TargetPositionCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else {

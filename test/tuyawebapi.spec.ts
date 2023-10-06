@@ -14,7 +14,7 @@ describe("TuyaWebApi", () => {
       config.username,
       config.password,
       config.countryCode,
-      config.platform
+      config.platform,
     );
   });
 
@@ -26,7 +26,7 @@ describe("TuyaWebApi", () => {
           assert.notStrictEqual(
             api["session"]?.accessToken,
             null,
-            "No valid access token."
+            "No valid access token.",
           );
           done();
         })
@@ -39,7 +39,7 @@ describe("TuyaWebApi", () => {
       assert.strictEqual(
         api["session"]?.areaBaseUrl,
         "https://px1.tuyaeu.com",
-        "Area Base URL is not set."
+        "Area Base URL is not set.",
       );
       done();
     });

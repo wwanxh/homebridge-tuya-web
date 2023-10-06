@@ -12,7 +12,7 @@ export class FanAccessory extends BaseAccessory {
   constructor(
     platform: TuyaWebPlatform,
     homebridgeAccessory: HomebridgeAccessory | undefined,
-    deviceConfig: TuyaDevice
+    deviceConfig: TuyaDevice,
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.FAN);
   }
@@ -30,7 +30,7 @@ export class FanAccessory extends BaseAccessory {
     if (Array.isArray(this.deviceConfig.config?.fan_characteristics)) {
       const supportedCharacteristics: GeneralCharacteristic[] = [];
       const configuredCharacteristics =
-        this.deviceConfig.config?.fan_characteristics || [];
+        this.deviceConfig.config?.fan_characteristics ?? [];
       if (configuredCharacteristics.includes("Speed")) {
         supportedCharacteristics.push(RotationSpeedCharacteristic);
       }

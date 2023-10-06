@@ -15,7 +15,7 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
     return accessory.platform.Characteristic.On;
   }
 
-  public static isSupportedByAccessory(accessory): boolean {
+  public static isSupportedByAccessory(accessory: BaseAccessory): boolean {
     return accessory.deviceConfig.data.state !== undefined;
   }
 
@@ -31,13 +31,13 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
 
   public setRemoteValue(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void {
     // Set device state in Tuya Web API
     const value = homekitValue ? 1 : 0;
 
     this.accessory
-      .setDeviceState("turnOnOff", { value }, { state: homekitValue })
+      .setDeviceState("turnOnOff", { value }, { state: Boolean(homekitValue) })
       .then(() => {
         this.debug("[SET] %s %s", homekitValue, value);
         callback();
@@ -51,7 +51,7 @@ export class OnCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else {

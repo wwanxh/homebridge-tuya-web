@@ -16,7 +16,7 @@ export class LightAccessory extends ColorAccessory {
   constructor(
     platform: TuyaWebPlatform,
     homebridgeAccessory: HomebridgeAccessory | undefined,
-    deviceConfig: TuyaDevice
+    deviceConfig: TuyaDevice,
   ) {
     super(platform, homebridgeAccessory, deviceConfig, Categories.LIGHTBULB);
   }
@@ -40,7 +40,7 @@ export class LightAccessory extends ColorAccessory {
     if (Array.isArray(this.deviceConfig.config?.light_characteristics)) {
       const supportedCharacteristics: GeneralCharacteristic[] = [];
       const configuredCharacteristics =
-        this.deviceConfig.config?.light_characteristics || [];
+        this.deviceConfig.config?.light_characteristics ?? [];
       if (configuredCharacteristics.includes("Brightness")) {
         supportedCharacteristics.push(BrightnessCharacteristic);
       }

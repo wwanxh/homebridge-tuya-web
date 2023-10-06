@@ -35,7 +35,7 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
 
   public setRemoteValue(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void {
     const value =
       (homekitValue as number) === this.TargetDoorState.CLOSED ? 0 : 1;
@@ -47,7 +47,7 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
 
     this.accessory
       .setDeviceState("turnOnOff", { value }, data)
-      .then(async () => {
+      .then(() => {
         this.debug("[SET] %s", value);
         callback();
       })
@@ -80,7 +80,7 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else if (["true", "false"].includes(String(data?.state).toLowerCase())) {
@@ -90,7 +90,7 @@ export class TargetDoorStateCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else {

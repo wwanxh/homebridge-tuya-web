@@ -27,7 +27,7 @@ export class PositionStateCharacteristic extends TuyaWebCharacteristic {
     this.accessory.setCharacteristic(
       this.homekitCharacteristic,
       this.PositionState.STOPPED,
-      !callback
+      !callback,
     );
     callback && callback(null, this.PositionState.STOPPED);
   }

@@ -58,39 +58,47 @@ export const HomeAssistantDeviceTypes = [
 ] as const;
 export type HomeAssistantDeviceType = (typeof HomeAssistantDeviceTypes)[number];
 
-export type TuyaDevice = {
+export interface TuyaDevice {
   data: DeviceState;
   name: string;
   id: string;
   dev_type: TuyaDeviceType;
   ha_type: HomeAssistantDeviceType;
   config?: Partial<TuyaDeviceDefaults> & { old_dev_type: TuyaDeviceType };
-};
+}
 
-export type TuyaHeader = {
+export interface TuyaRequestHeader {
+  name: "Discovery" | "QueryDevice" | TuyaApiMethod;
+  namespace: "discovery" | "query" | "control";
+  payloadVersion: 1;
+}
+
+export interface TuyaResponseHeader {
+  /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
   code:
     | "FrequentlyInvoke"
     | "SUCCESS"
     | "TargetOffline"
     | "UnsupportedOperation"
     | string;
+  /* eslint-enable @typescript-eslint/no-redundant-type-constituents */
   payloadVersion: 1;
   msg?: string;
-};
+}
 
-export type DiscoveryPayload = {
+export interface DiscoveryPayload {
   payload: {
     devices: TuyaDevice[];
   };
-  header: TuyaHeader;
-};
+  header: TuyaResponseHeader;
+}
 
-export type DeviceQueryPayload = {
+export interface DeviceQueryPayload {
   payload: {
     data: DeviceState;
   };
-  header: TuyaHeader;
-};
+  header: TuyaResponseHeader;
+}
 
 export type TuyaApiMethod =
   | "brightnessSet"

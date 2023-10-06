@@ -58,7 +58,7 @@ export class CurrentDoorStateCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else if (["true", "false"].includes(String(data?.state).toLowerCase())) {
@@ -68,7 +68,7 @@ export class CurrentDoorStateCharacteristic extends TuyaWebCharacteristic {
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         stateValue,
-        !callback
+        !callback,
       );
       callback && callback(null, stateValue);
     } else {

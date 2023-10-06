@@ -37,7 +37,7 @@ export class Cache {
       return null;
     }
 
-    return this.value || null;
+    return this.value ?? null;
   }
 
   private static getCurrentEpoch(): number {

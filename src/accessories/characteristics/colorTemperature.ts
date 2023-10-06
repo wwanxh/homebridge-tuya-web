@@ -20,7 +20,7 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
     return accessory.platform.Characteristic.ColorTemperature;
   }
 
-  public static isSupportedByAccessory(accessory): boolean {
+  public static isSupportedByAccessory(accessory: BaseAccessory): boolean {
     return accessory.deviceConfig.data.color_temp !== undefined;
   }
 
@@ -52,7 +52,7 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
 
   public rangeMapper = MapRange.tuya(this.maxKelvin, this.minKelvin).homeKit(
     this.minHomekit,
-    this.maxHomekit
+    this.maxHomekit,
   );
 
   public getRemoteValue(callback: CharacteristicGetCallback): void {
@@ -67,10 +67,12 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
 
   public setRemoteValue(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void {
     if (typeof homekitValue !== "number") {
-      const errorMsg = `Received unexpected temperature value "${homekitValue}" of type ${typeof homekitValue}`;
+      const errorMsg = `Received unexpected temperature value ${JSON.stringify(
+        homekitValue,
+      )} of type ${typeof homekitValue}`;
       this.warn(errorMsg);
       callback(new Error(errorMsg));
       return;
@@ -92,7 +94,7 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
     if (data?.color_temp !== undefined) {
       const tuyaValue = data.color_temp;
       const homekitColorTemp = Math.round(
-        this.rangeMapper.tuyaToHomekit(Number(data.color_temp))
+        this.rangeMapper.tuyaToHomekit(Number(data.color_temp)),
       );
 
       if (homekitColorTemp > this.maxHomekit) {
@@ -101,7 +103,7 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
             "is lower then configured minimum Tuya kelvin value (%s). Please update your configuration!",
           homekitColorTemp,
           tuyaValue,
-          this.rangeMapper.tuyaStart
+          this.rangeMapper.tuyaStart,
         );
       } else if (homekitColorTemp < this.minHomekit) {
         this.warn(
@@ -109,14 +111,14 @@ export class ColorTemperatureCharacteristic extends TuyaWebCharacteristic {
             "exceeds configured maximum Tuya kelvin value (%s). Please update your configuration!",
           homekitColorTemp,
           tuyaValue,
-          this.rangeMapper.tuyaEnd
+          this.rangeMapper.tuyaEnd,
         );
       }
 
       this.accessory.setCharacteristic(
         this.homekitCharacteristic,
         homekitColorTemp,
-        !callback
+        !callback,
       );
       callback && callback(null, homekitColorTemp);
     } else {

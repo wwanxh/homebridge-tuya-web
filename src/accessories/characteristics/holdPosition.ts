@@ -17,13 +17,13 @@ export class HoldPositionCharacteristic extends TuyaWebCharacteristic {
 
   public setRemoteValue(
     homekitValue: CharacteristicValue,
-    callback: CharacteristicSetCallback
+    callback: CharacteristicSetCallback,
   ): void {
     this.accessory
       .setDeviceState(
         "startStop",
         { value: 0 },
-        { state: CoverState.Stopped, target_cover_state: CoverState.Stopped }
+        { state: CoverState.Stopped, target_cover_state: CoverState.Stopped },
       )
       .then(() => {
         this.debug("[SET]");
